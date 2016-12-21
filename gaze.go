@@ -120,7 +120,11 @@ func mainInner() error {
 		return fmt.Errorf("Failed during run and report: %v", err.Error())
 	}
 
-	fmt.Println(report)
+	fmt.Println(report.StartTime)
+	fmt.Println(report.EndTime)
+	fmt.Println(report.ExitCode)
+	fmt.Println(report.ExitDescription)
+	fmt.Println(report.CapturedOutput)
 
 	return nil
 }

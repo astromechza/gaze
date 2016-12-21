@@ -24,61 +24,55 @@ type GazeReport struct {
 	ExitDescription string    `json:"exit_description"`
 }
 
-func streamToFile(r io.Reader, path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	w := bufio.NewWriter(f)
+func streamToBuffer(r io.Reader, buff *bytes.Buffer) error {
+	w := bufio.NewWriter(buff)
 	defer w.Flush()
-	_, err = io.Copy(w, r)
-	if err != nil {
-		return err
-	}
-	return nil
-
+	_, err := io.Copy(w, r)
+	return err
 }
 
-func setupReadAll(stdoutPipe, stderrPipe io.Reader, buff *bytes.Buffer) error {
+func setupPullFromStdout(stdoutPipe io.ReadCloser, target *bytes.Buffer) error {
 	stdOutDoneChan := make(chan error, 1)
-	stdErrDoneChan := make(chan error, 1)
 
 	// also, Tee everything to this processes' stdout/stderr
-	cmdStderrTee := io.TeeReader(stderrPipe, os.Stderr)
 	cmdStdoutTee := io.TeeReader(stdoutPipe, os.Stdout)
 
 	// spawn goroutines to read from stdout/stderr
 	go func() {
-		if err := streamToFile(cmdStdoutTee, "stdout.log"); err != nil {
-			stdOutDoneChan <- err
-		} else {
-			stdOutDoneChan <- nil
-		}
-
-	}()
-
-	go func() {
-		if err := streamToFile(cmdStderrTee, "stderr.log"); err != nil {
-			stdErrDoneChan <- err
-		} else {
-			stdErrDoneChan <- nil
-		}
-
+		stdOutDoneChan <- streamToBuffer(cmdStdoutTee, target)
 	}()
 
 	// wait for goroutines
 	stdOutResult := <-stdOutDoneChan
+	return stdOutResult
+}
+
+func setupPullFromStderr(stderrPipe io.ReadCloser, target *bytes.Buffer) error {
+	stdErrDoneChan := make(chan error, 1)
+
+	// also, Tee everything to this processes' stdout/stderr
+	cmdStderrTee := io.TeeReader(stderrPipe, os.Stderr)
+
+	// spawn goroutines to read from stdout/stderr
+	go func() {
+		stdErrDoneChan <- streamToBuffer(cmdStderrTee, target)
+	}()
+
+	// wait for goroutines
 	stdErrResult := <-stdErrDoneChan
+	return stdErrResult
+}
+
+func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer) error {
+	// wait for goroutines
+	stdOutResult := setupPullFromStdout(stdoutPipe, buff)
+	stdErrResult := setupPullFromStderr(stderrPipe, buff)
 
 	// check for errors
-	results := []error{stdOutResult, stdErrResult}
-	for _, result := range results {
-		if result != nil {
-			return fmt.Errorf("Saving cmd output failed: %v", result)
-		}
+	if stdOutResult != nil {
+		return stdOutResult
 	}
-
-	return nil
+	return stdErrResult
 }
 
 func runReport(args []string, config *conf.GazeConfig, name string) (*GazeReport, error) {
@@ -86,6 +80,7 @@ func runReport(args []string, config *conf.GazeConfig, name string) (*GazeReport
 	output.StartTime = time.Now()
 	output.ExitCode = 0
 	output.ExitDescription = "No description added"
+	output.CapturedOutput = ""
 
 	// run command
 	cmd := exec.Command(args[0], args[1:]...)
@@ -112,7 +107,7 @@ func runReport(args []string, config *conf.GazeConfig, name string) (*GazeReport
 		fmt.Printf(">>> %v\n", err.Error())
 	} else {
 
-		var outputBuffer *bytes.Buffer
+		outputBuffer := new(bytes.Buffer)
 		err = setupReadAll(stdoutPipe, stderrPipe, outputBuffer)
 		if err != nil {
 			output.ExitCode = -1
@@ -132,9 +127,9 @@ func runReport(args []string, config *conf.GazeConfig, name string) (*GazeReport
 					output.ExitDescription = fmt.Sprintf("Unexpected error: %v", err.Error())
 				}
 			} else {
-				fmt.Println(string(outputBuffer.String()))
 				output.ExitDescription = "Execution finished with no error"
 			}
+			output.CapturedOutput = outputBuffer.String()
 		}
 	}
 
