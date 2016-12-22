@@ -9,6 +9,8 @@ import (
 
 	"regexp"
 
+	"encoding/json"
+
 	"github.com/AstromechZA/gaze/conf"
 )
 
@@ -114,17 +116,44 @@ func mainInner() error {
 		return fmt.Errorf("Could not build command name from supplied args, please provide -name flag for gaze")
 	}
 
+	forwardOutputToConsole := !*jsonFlag
+
 	// run and generate report
-	report, err := runReport(flag.Args(), cfg, commandName)
+	report, err := runReport(flag.Args(), cfg, commandName, forwardOutputToConsole)
 	if err != nil {
 		return fmt.Errorf("Failed during run and report: %v", err.Error())
 	}
 
-	fmt.Println(report.StartTime)
-	fmt.Println(report.EndTime)
-	fmt.Println(report.ExitCode)
-	fmt.Println(report.ExitDescription)
-	fmt.Println(report.CapturedOutput)
+	activateBehaviours := true
+
+	if *jsonFlag {
+		output, _ := json.Marshal(report)
+		fmt.Println(string(output))
+		return nil
+	}
+
+	commandWasSuccessful := report.ExitCode == 0
+	if activateBehaviours {
+		for _, bref := range cfg.Behaviours {
+			// only run at the right times
+			if commandWasSuccessful && bref.When == "failures" {
+				continue
+			} else if !commandWasSuccessful && bref.When == "successes" {
+				continue
+			}
+
+			// run the correct behaviour
+			if bref.Type == "command" {
+				_ = RunCmdBehaviour(report, bref)
+			} else if bref.Type == "logfile" {
+				_ = RunLogBehaviour(report, bref)
+			} else if bref.Type == "web" {
+				_ = RunWebBehaviour(report, bref)
+			} else {
+				fmt.Printf(">>> err: unknown behaviour type: %v", bref.Type)
+			}
+		}
+	}
 
 	return nil
 }

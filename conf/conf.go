@@ -3,7 +3,7 @@ package conf
 import "github.com/BurntSushi/toml"
 import "fmt"
 
-type GazeBehaviour struct {
+type GazeBehaviourConfig struct {
 	Type         string                 `toml:"type"`
 	When         string                 `toml:"when"`
 	StdoutPolicy string                 `toml:"stdoutpolicy"`
@@ -12,7 +12,7 @@ type GazeBehaviour struct {
 }
 
 type GazeConfig struct {
-	Behaviours []*GazeBehaviour `toml:"behaviours"`
+	Behaviours []*GazeBehaviourConfig `toml:"behaviours"`
 }
 
 // Load the config information from the file on disk
@@ -36,7 +36,7 @@ func stringIn(containee string, container *[]string) bool {
 	return false
 }
 
-func validateStringSetting(input *GazeBehaviour, name string) error {
+func validateStringSetting(input *GazeBehaviourConfig, name string) error {
 	commandV, ok := input.Settings[name]
 	if ok {
 		commandS, ok := commandV.(string)
@@ -48,7 +48,7 @@ func validateStringSetting(input *GazeBehaviour, name string) error {
 	return fmt.Errorf("Behaviour of type '%v' must have a '%v' string", input.Type, name)
 }
 
-func validateStringSettingWithDefault(input *GazeBehaviour, name string, defaultValue string) error {
+func validateStringSettingWithDefault(input *GazeBehaviourConfig, name string, defaultValue string) error {
 	commandV, ok := input.Settings[name]
 	if ok {
 		commandS, ok := commandV.(string)
@@ -62,7 +62,7 @@ func validateStringSettingWithDefault(input *GazeBehaviour, name string, default
 	return nil
 }
 
-func validateStringSettingAllowed(input *GazeBehaviour, name string, allowed *[]string) error {
+func validateStringSettingAllowed(input *GazeBehaviourConfig, name string, allowed *[]string) error {
 	if err := validateStringSetting(input, name); err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func validateStringSettingAllowed(input *GazeBehaviour, name string, allowed *[]
 	return nil
 }
 
-func validateStringSettingWithDefaultAllowed(input *GazeBehaviour, name string, defaultValue string, allowed *[]string) error {
+func validateStringSettingWithDefaultAllowed(input *GazeBehaviourConfig, name string, defaultValue string, allowed *[]string) error {
 	if err := validateStringSettingWithDefault(input, name, defaultValue); err != nil {
 		return err
 	}
@@ -82,11 +82,11 @@ func validateStringSettingWithDefaultAllowed(input *GazeBehaviour, name string, 
 	return nil
 }
 
-func ValidateGazeCommandBehaviour(input *GazeBehaviour) error {
+func ValidateGazeCommandBehaviour(input *GazeBehaviourConfig) error {
 	return validateStringSetting(input, "command")
 }
 
-func ValidateGazeLogFileBehaviour(input *GazeBehaviour) error {
+func ValidateGazeLogFileBehaviour(input *GazeBehaviourConfig) error {
 	if err := validateStringSetting(input, "directory"); err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func ValidateGazeLogFileBehaviour(input *GazeBehaviour) error {
 	return nil
 }
 
-func ValidateGazeWebBehaviour(input *GazeBehaviour) error {
+func ValidateGazeWebBehaviour(input *GazeBehaviourConfig) error {
 	if err := validateStringSetting(input, "url"); err != nil {
 		return err
 	}
