@@ -83,7 +83,19 @@ func validateStringSettingWithDefaultAllowed(input *GazeBehaviourConfig, name st
 }
 
 func ValidateGazeCommandBehaviour(input *GazeBehaviourConfig) error {
-	return validateStringSetting(input, "command")
+	if err := validateStringSetting(input, "command"); err != nil {
+		return err
+	}
+	argsV, ok := input.Settings["args"]
+	if ok {
+		_, ok := argsV.([]string)
+		if !ok {
+			return fmt.Errorf("Behaviour of type '%v' setting 'args' must be a string array", input.Type)
+		}
+	} else {
+		return fmt.Errorf("Behaviour of type '%v' must have an 'args' key", input.Type)
+	}
+	return nil
 }
 
 func ValidateGazeLogFileBehaviour(input *GazeBehaviourConfig) error {
