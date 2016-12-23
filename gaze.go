@@ -1,17 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
-
 	"regexp"
 
-	"encoding/json"
-
 	"github.com/AstromechZA/gaze/conf"
+
+	logging "github.com/op/go-logging"
 )
 
 const usageString = `TODO
@@ -38,6 +38,32 @@ const logoImage = `
 // format should be 'X.YZ'
 // Set this at build time using the -ldflags="-X main.GazeVersion=X.YZ"
 var GazeVersion = "<unofficial build>"
+
+var logFormat = logging.MustStringFormatter(
+	"%{time:2006-01-02T15:04:05.000} %{module} %{level:.4s} - %{message}",
+)
+var log = logging.MustGetLogger("gaze")
+
+// MuteLogBackend is used because for some reason this logging library doesn't support globally
+// disabling the logging
+type MuteLogBackend struct{}
+
+// Log function does nothing
+func (b *MuteLogBackend) Log(level logging.Level, calldepth int, rec *logging.Record) error {
+	return nil
+}
+
+func setupLogging(enabled bool) {
+	if enabled {
+		logBackend := logging.NewLogBackend(os.Stdout, "", 0)
+		backend := logging.NewBackendFormatter(logBackend, logFormat)
+		lvlBackend := logging.AddModuleLevel(backend)
+		lvlBackend.SetLevel(logging.DEBUG, "")
+		logging.SetBackend(lvlBackend)
+	} else {
+		logging.SetBackend(new(MuteLogBackend))
+	}
+}
 
 func mainInner() error {
 
@@ -75,23 +101,31 @@ func mainInner() error {
 		return nil
 	}
 
-	// identify config path
-	configPath := (*configFlag)
-	if configPath == "" {
-		usr, _ := user.Current()
-		configPath = filepath.Join(usr.HomeDir, ".config/gaze.toml")
-	}
-	configPath, err := filepath.Abs(configPath)
-	if err != nil {
-		return fmt.Errorf("Failed to identify config path: %v", err.Error())
-	}
-	// load and validate config
-	cfg, err := conf.Load(&configPath)
-	if err != nil {
-		return fmt.Errorf("Failed to load config: %v", err.Error())
-	}
-	if err = conf.ValidateAndClean(cfg); err != nil {
-		return fmt.Errorf("Config failed validation: %v", err.Error())
+	setupLogging(*debugFlag)
+	log.Info("Logging initialised")
+
+	var cfg *conf.GazeConfig
+	configRequired := !*jsonFlag
+	if configRequired {
+		// identify config path
+		configPath := (*configFlag)
+		if configPath == "" {
+			usr, _ := user.Current()
+			configPath = filepath.Join(usr.HomeDir, ".config/gaze.toml")
+		}
+		configPath, err := filepath.Abs(configPath)
+		log.Infof("Loading config from %v", configPath)
+		if err != nil {
+			return fmt.Errorf("Failed to identify config path: %v", err.Error())
+		}
+		// load and validate config
+		cfg, err = conf.Load(&configPath)
+		if err != nil {
+			return fmt.Errorf("Failed to load config: %v", err.Error())
+		}
+		if err = conf.ValidateAndClean(cfg); err != nil {
+			return fmt.Errorf("Config failed validation: %v", err.Error())
+		}
 	}
 
 	// build command name
@@ -111,20 +145,18 @@ func mainInner() error {
 			}
 		}
 	}
-	// TODO possibly more validation for this name
+	log.Infof("Attempting to use '%v' as commandName", commandName)
 	if commandName == "" {
 		return fmt.Errorf("Could not build command name from supplied args, please provide -name flag for gaze")
 	}
 
-	forwardOutputToConsole := !*jsonFlag
-
 	// run and generate report
+	forwardOutputToConsole := !*jsonFlag
 	report, err := runReport(flag.Args(), cfg, commandName, forwardOutputToConsole)
 	if err != nil {
 		return fmt.Errorf("Failed during run and report: %v", err.Error())
 	}
-
-	activateBehaviours := true
+	log.Infof("Command exited with code %v", report.ExitCode)
 
 	if *jsonFlag {
 		output, _ := json.Marshal(report)
@@ -133,24 +165,32 @@ func mainInner() error {
 	}
 
 	commandWasSuccessful := report.ExitCode == 0
+	activateBehaviours := true
 	if activateBehaviours {
 		for _, bref := range cfg.Behaviours {
+			log.Infof("Running behaviour of type %v..", bref.Type)
+
 			// only run at the right times
 			if commandWasSuccessful && bref.When == "failures" {
+				log.Info("Skipping because it only runs on failures")
 				continue
 			} else if !commandWasSuccessful && bref.When == "successes" {
+				log.Info("Skipping because it only runs on successes")
 				continue
 			}
 
 			// run the correct behaviour
 			if bref.Type == "command" {
-				_ = RunCmdBehaviour(report, bref)
+				err = RunCmdBehaviour(report, bref)
 			} else if bref.Type == "logfile" {
-				_ = RunLogBehaviour(report, bref)
+				err = RunLogBehaviour(report, bref)
 			} else if bref.Type == "web" {
-				_ = RunWebBehaviour(report, bref)
+				err = RunWebBehaviour(report, bref)
 			} else {
-				fmt.Printf(">>> err: unknown behaviour type: %v", bref.Type)
+				panic(fmt.Sprintf(">>> err: unknown behaviour type: %v", bref.Type))
+			}
+			if err != nil {
+				log.Errorf("Behaviour '%v' failed!: %v", bref.Type, err.Error())
 			}
 		}
 	}

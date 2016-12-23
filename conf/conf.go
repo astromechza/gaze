@@ -1,18 +1,20 @@
 package conf
 
-import "github.com/BurntSushi/toml"
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/BurntSushi/toml"
+)
 
 type GazeBehaviourConfig struct {
-	Type         string                 `toml:"type"`
-	When         string                 `toml:"when"`
-	StdoutPolicy string                 `toml:"stdoutpolicy"`
-	StderrPolicy string                 `toml:"stderrpolicy"`
-	Settings     map[string]interface{} `toml:"settings"`
+	Type          string                 `toml:"type"`
+	When          string                 `toml:"when"`
+	IncludeOutput bool                   `toml:"include_output"`
+	Settings      map[string]interface{} `toml:"settings"`
 }
 
 type GazeConfig struct {
-	Behaviours []*GazeBehaviourConfig `toml:"behaviours"`
+	Behaviours map[string]*GazeBehaviourConfig `toml:"behaviours"`
 }
 
 // Load the config information from the file on disk
@@ -136,7 +138,10 @@ func ValidateGazeWebBehaviour(input *GazeBehaviourConfig) error {
 func ValidateAndClean(cfg *GazeConfig) error {
 	validTypes := []string{"logfile", "command", "web"}
 	validWhens := []string{"always", "failures", "successes"}
-	validPolicies := []string{"capture", "ignore"}
+
+	if len(cfg.Behaviours) == 0 {
+		return fmt.Errorf("At least one behaviour must be configured in the gaze config file")
+	}
 
 	for _, behaviour := range cfg.Behaviours {
 		if !stringIn(behaviour.Type, &validTypes) {
@@ -147,18 +152,6 @@ func ValidateAndClean(cfg *GazeConfig) error {
 		}
 		if !stringIn(behaviour.When, &validWhens) {
 			return fmt.Errorf("Behaviour 'when' must be one of %v", validWhens)
-		}
-		if behaviour.StdoutPolicy == "" {
-			behaviour.StdoutPolicy = "ignore"
-		}
-		if !stringIn(behaviour.StdoutPolicy, &validPolicies) {
-			return fmt.Errorf("Behaviour 'stdoutpolicy' must be one of %v", validPolicies)
-		}
-		if behaviour.StderrPolicy == "" {
-			behaviour.StderrPolicy = "ignore"
-		}
-		if !stringIn(behaviour.StderrPolicy, &validPolicies) {
-			return fmt.Errorf("Behaviour 'stderrpolicy' must be one of %v", validPolicies)
 		}
 		if behaviour.Type == "command" {
 			if err := ValidateGazeCommandBehaviour(behaviour); err != nil {

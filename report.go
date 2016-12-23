@@ -2,23 +2,22 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"syscall"
 	"time"
-
-	"os"
-
-	"bytes"
-
-	"io"
 
 	"github.com/AstromechZA/gaze/conf"
 )
 
 type GazeReport struct {
+	Name            string    `json:"name"`
 	StartTime       time.Time `json:"start_time"`
 	EndTime         time.Time `json:"end_time"`
+	ElapsedSeconds  float32   `json:"elapsed_seconds"`
 	ExitCode        int       `json:"exit_code"`
 	CapturedOutput  string    `json:"captured_output"`
 	ExitDescription string    `json:"exit_description"`
@@ -31,54 +30,28 @@ func streamToBuffer(r io.Reader, buff *bytes.Buffer) error {
 	return err
 }
 
-func setupPullFromStdout(stdoutPipe io.ReadCloser, target *bytes.Buffer, forwardOutput bool) error {
-	stdOutDoneChan := make(chan error, 1)
+func beginBufferTee(inputPipe io.ReadCloser, target *bytes.Buffer, forwardOutput bool, forwardTarget *os.File) error {
+	doneChan := make(chan error, 1)
 
+	var bufferSource io.Reader = inputPipe
 	if forwardOutput {
 		// also, Tee everything to this processes' stdout/stderr
-		cmdStdoutTee := io.TeeReader(stdoutPipe, os.Stdout)
-
-		// spawn goroutines to read from stdout/stderr
-		go func() {
-			stdOutDoneChan <- streamToBuffer(cmdStdoutTee, target)
-		}()
-	} else {
-		go func() {
-			stdOutDoneChan <- streamToBuffer(stdoutPipe, target)
-		}()
+		bufferSource = io.TeeReader(bufferSource, forwardTarget)
 	}
 
-	// wait for goroutines
-	stdOutResult := <-stdOutDoneChan
-	return stdOutResult
-}
+	// start goroutine to run copy routine
+	go func() {
+		doneChan <- streamToBuffer(bufferSource, target)
+	}()
 
-func setupPullFromStderr(stderrPipe io.ReadCloser, target *bytes.Buffer, forwardOutput bool) error {
-	stdErrDoneChan := make(chan error, 1)
-
-	if forwardOutput {
-		// also, Tee everything to this processes' stdout/stderr
-		cmdStderrTee := io.TeeReader(stderrPipe, os.Stderr)
-
-		// spawn goroutines to read from stdout/stderr
-		go func() {
-			stdErrDoneChan <- streamToBuffer(cmdStderrTee, target)
-		}()
-	} else {
-		go func() {
-			stdErrDoneChan <- streamToBuffer(stderrPipe, target)
-		}()
-	}
-
-	// wait for goroutines
-	stdErrResult := <-stdErrDoneChan
-	return stdErrResult
+	// wait for goroutine
+	return <-doneChan
 }
 
 func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer, forwardOutput bool) error {
 	// wait for goroutines
-	stdOutResult := setupPullFromStdout(stdoutPipe, buff, forwardOutput)
-	stdErrResult := setupPullFromStderr(stderrPipe, buff, forwardOutput)
+	stdOutResult := beginBufferTee(stdoutPipe, buff, forwardOutput, os.Stdout)
+	stdErrResult := beginBufferTee(stderrPipe, buff, forwardOutput, os.Stderr)
 
 	// check for errors
 	if stdOutResult != nil {
@@ -89,13 +62,16 @@ func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer, forw
 
 func runReport(args []string, config *conf.GazeConfig, name string, forwardOutput bool) (*GazeReport, error) {
 	output := new(GazeReport)
+	output.Name = name
 	output.StartTime = time.Now()
 	output.ExitCode = 0
 	output.ExitDescription = "No description added"
 	output.CapturedOutput = ""
+	output.ElapsedSeconds = 0
 
 	defer func() {
 		output.EndTime = time.Now()
+		output.ElapsedSeconds = float32(output.EndTime.Sub(output.StartTime)) / float32(time.Second)
 	}()
 
 	// run command

@@ -2,15 +2,12 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os/exec"
-
-	"encoding/json"
-
 	"os"
-
+	"os/exec"
 	"path/filepath"
 
 	"github.com/AstromechZA/gaze/conf"
@@ -35,6 +32,7 @@ func RunWebBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 	extraHeaders := config.Settings["headers"].(map[string]string)
 
 	// construct the thing
+	log.Infof("Making %v request to %v..", method, url)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 	for headerName, headerContent := range extraHeaders {
@@ -49,11 +47,12 @@ func RunWebBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 	}
 	defer resp.Body.Close()
 
-	// must read body
-	ioutil.ReadAll(resp.Body)
+	// must read body but pretty much discard it
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	// throw error if necessary
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Infof("Request returned code %v: %v", resp.Status, body)
 		return fmt.Errorf("%v request to %v failed with code %v", method, url, resp.StatusCode)
 	}
 
@@ -103,6 +102,7 @@ func RunLogBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 	if err := ensureLogFileExists(logFilePath); err != nil {
 		return err
 	}
+	log.Infof("Appending data to '%v'..", logFilePath)
 	f, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_RDWR, 06666)
 	if err != nil {
 		return err
