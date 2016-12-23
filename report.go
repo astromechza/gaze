@@ -14,13 +14,17 @@ import (
 )
 
 type GazeReport struct {
-	Name            string    `json:"name"`
-	StartTime       time.Time `json:"start_time"`
-	EndTime         time.Time `json:"end_time"`
-	ElapsedSeconds  float32   `json:"elapsed_seconds"`
-	ExitCode        int       `json:"exit_code"`
-	CapturedOutput  string    `json:"captured_output"`
-	ExitDescription string    `json:"exit_description"`
+	Name    string   `json:"name"`
+	Command []string `json:"command"`
+
+	StartTime      time.Time `json:"start_time"`
+	EndTime        time.Time `json:"end_time"`
+	ElapsedSeconds float32   `json:"elapsed_seconds"`
+
+	ExitCode        int    `json:"exit_code"`
+	ExitDescription string `json:"exit_description"`
+
+	CapturedOutput string `json:"captured_output"`
 }
 
 func streamToBuffer(r io.Reader, buff *bytes.Buffer) error {
@@ -68,6 +72,7 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	output.ExitDescription = "No description added"
 	output.CapturedOutput = ""
 	output.ElapsedSeconds = 0
+	output.Command = args
 
 	defer func() {
 		output.EndTime = time.Now()
