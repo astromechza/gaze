@@ -25,6 +25,8 @@ type GazeReport struct {
 	ExitDescription string `json:"exit_description"`
 
 	CapturedOutput string `json:"captured_output"`
+
+	Hostname string `json:"hostname"`
 }
 
 func streamToBuffer(r io.Reader, buff *bytes.Buffer) error {
@@ -74,6 +76,11 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	output.ElapsedSeconds = 0
 	output.Command = args
 
+	hn, err := os.Hostname()
+	if err == nil {
+		output.Hostname = hn
+	}
+
 	defer func() {
 		output.EndTime = time.Now()
 		output.ElapsedSeconds = float32(output.EndTime.Sub(output.StartTime)) / float32(time.Second)
@@ -85,7 +92,6 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	// send process stdin to subprocess
 	cmd.Stdin = os.Stdin
 
-	var err error
 	var stdoutPipe io.ReadCloser
 	var stderrPipe io.ReadCloser
 
