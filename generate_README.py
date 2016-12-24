@@ -5,7 +5,7 @@ import os
 from textwrap import dedent
 import subprocess
 import tempfile
-
+import time
 
 DESTINATION_FILE = os.path.join(os.path.dirname(__file__), 'README.md')
 
@@ -14,20 +14,20 @@ def generate_content():
     lines = []
 
     lines.append("# `gaze` - capture and log process execution")
-    lines.append(dedent("""
+    lines.append(dedent("""\
     Gaze is a command line tool that can be used to monitor and report the execution of a command. It becomes really
     powerful when used in `cron` entries and other commands that are run regularly such as scheduled backups and
     updates. There is no point having a backup procedure that silently fails.
     """))
 
-    lines.append(dedent("""
+    lines.append(dedent("""\
     There are 3 types of behaviours that can be invoked once an execution has completed:
     - `logfile` : Simple logging of either structured json or human readable text to a given file path
     - `web` : Submit a POST or PUT request with a json payload to whatever url you want
     - `command` : Run the given command with a json payload piped to stdin
     """))
 
-    lines.append(dedent("""
+    lines.append(dedent("""\
     Errors triggered while running behaviours do not affect the stdout/stderr output of the
     command being executed and so are only visible when the `-debug` flag is provided. This is to allow commands to be
     transparently logged without affecting other process flow while the captured command is part of a piped chain of
@@ -45,7 +45,7 @@ def generate_content():
 
     lines.append("### Configuration")
     lines.append("")
-    lines.append(dedent("""
+    lines.append(dedent("""\
     Behaviours and tags are configured via a config file. The config file is either read from 
     `$HOME/.config/gaze.toml` or from whatever file path the user provides on the `-config` flag. We use a `toml` 
     format for now since it allows quite expressive configuration without the strictness or annoyance of JSON."""))
@@ -56,8 +56,23 @@ def generate_content():
 
     lines.append("Specifying the config and watching the debug log:")
 
+    proc = subprocess.Popen(["python", "example_python_receiver.py"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    time.sleep(1)
+
     cf = generate_example_config_file()
     add_command_example(lines, "./gaze -config {} -debug date".format(cf))
+
+    proc.kill()
+    srvout, _ = proc.communicate()
+
+    lines.append(dedent("""\
+    The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the 
+    `web` behaviour. It's output looks something like the following:
+
+    ```
+    {}
+    ```
+    """).format(srvout.strip()))
 
     text = "\n".join(lines)
     if not text.endswith("\n"):

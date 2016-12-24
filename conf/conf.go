@@ -64,7 +64,7 @@ func GenerateExample() *GazeConfig {
 	b2.When = "always"
 	b2.IncludeOutput = true
 	b2.Settings = make(map[string]interface{})
-	b2.Settings["url"] = "http://127.0.0.1:9090"
+	b2.Settings["url"] = "http://127.0.0.1:8080"
 	b2.Settings["method"] = "POST"
 	h := make(map[string]string)
 	h["API-TOKEN"] = "MY_TOKEN"
