@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	logging "github.com/op/go-logging"
 )
+
+var log = logging.MustGetLogger("gaze.conf")
 
 type GazeBehaviourConfig struct {
 	Type          string                 `toml:"type"`
@@ -32,6 +35,7 @@ func Load(path *string, mustExist bool) (*GazeConfig, error) {
 	_, err = toml.DecodeFile(configPath, &output)
 	if err != nil {
 		if os.IsNotExist(err) && !mustExist {
+			log.Warningf("Config file %v does not exist, but we don't require it so using an empty config struct anyway!", configPath)
 			return &output, nil
 		}
 		return nil, err
