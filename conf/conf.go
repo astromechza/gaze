@@ -76,8 +76,8 @@ func GenerateExample() *GazeConfig {
 	b3.When = "successes"
 	b3.IncludeOutput = true
 	b3.Settings = make(map[string]interface{})
-	b3.Settings["command"] = "tee"
-	b3.Settings["args"] = []string{"-a", "output.log"}
+	b3.Settings["command"] = "python"
+	b3.Settings["args"] = []string{"-m", "json.tool"}
 	output.Behaviours["cmd"] = b3
 
 	return &output

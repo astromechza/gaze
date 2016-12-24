@@ -22,9 +22,15 @@ def generate_content():
 
     lines.append(dedent("""\
     There are 3 types of behaviours that can be invoked once an execution has completed:
-    - `logfile` : Simple logging of either structured json or human readable text to a given file path
     - `web` : Submit a POST or PUT request with a json payload to whatever url you want
     - `command` : Run the given command with a json payload piped to stdin
+    - `logfile` : Simple logging of either structured json or human readable text to a given file path
+    """))
+
+    lines.append(dedent("""\
+    The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to 
+    generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or 
+    use `command` to launch a script that submits data to a `graphite` monitoring instance.
     """))
 
     lines.append(dedent("""\
@@ -41,6 +47,7 @@ def generate_content():
 
     lines.append("### CLI")
     lines.append("")
+    add_command_example(lines, "./gaze -version")
     add_command_example(lines, "./gaze -help")
 
     lines.append("### Configuration")

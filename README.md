@@ -4,9 +4,13 @@ powerful when used in `cron` entries and other commands that are run regularly s
 updates. There is no point having a backup procedure that silently fails.
 
 There are 3 types of behaviours that can be invoked once an execution has completed:
-- `logfile` : Simple logging of either structured json or human readable text to a given file path
 - `web` : Submit a POST or PUT request with a json payload to whatever url you want
 - `command` : Run the given command with a json payload piped to stdin
+- `logfile` : Simple logging of either structured json or human readable text to a given file path
+
+The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to 
+generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or 
+use `command` to launch a script that submits data to a `graphite` monitoring instance.
 
 Errors triggered while running behaviours do not affect the stdout/stderr output of the
 command being executed and so are only visible when the `-debug` flag is provided. This is to allow commands to be
@@ -30,18 +34,39 @@ $ ./gaze -json sleep 1 | python -m json.tool
         "sleep",
         "1"
     ],
-    "elapsed_seconds": 1.0079165,
-    "end_time": "2016-12-24T14:12:11.832870832-03:00",
+    "elapsed_seconds": 1.0073752,
+    "end_time": "2016-12-24T14:24:14.249860566-03:00",
     "exit_code": 0,
     "exit_description": "Execution finished with no error",
     "hostname": "Bens-MacBook-Pro.local",
     "name": "sleep.1",
-    "start_time": "2016-12-24T14:12:10.8249544-03:00",
+    "start_time": "2016-12-24T14:24:13.242485266-03:00",
     "tags": []
 }
 ```
 
 ### CLI
+
+```
+$ ./gaze -version
+Version: <unofficial build>
+
+ .    '                   .  "   '
+            .  .  .                 '      '
+    "'       .   .
+                                     '     '
+  .    '      _______________
+          ==c(___(o(______(_()
+                  \=\
+                   )=\
+                  //|\\
+                 //|| \\
+                // ||  \\
+               //  ||   \\
+              //         \\
+
+Project: https://github.com/AstromechZA/gaze
+```
 
 ```
 $ ./gaze -help
@@ -81,8 +106,8 @@ tags = ["tagA", "tagB"]
     when = "successes"
     include_output = true
     [behaviours.cmd.settings]
-      args = ["-a", "output.log"]
-      command = "tee"
+      args = ["-m", "json.tool"]
+      command = "python"
   [behaviours.logging]
     type = "logfile"
     when = "failures"
@@ -104,10 +129,10 @@ tags = ["tagA", "tagB"]
 
 Specifying the config and watching the debug log:
 ```
-$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpC2X1Bzgaze/gaze.toml -debug date
-2016-12-24T14:12:12.892 gaze INFO - Logging initialised.
-2016-12-24T14:12:12.892 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpC2X1Bzgaze/gaze.toml
-2016-12-24T14:12:12.892 gaze INFO - Loaded config: {
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpnUboN3gaze/gaze.toml -debug date
+2016-12-24T14:24:15.375 gaze INFO - Logging initialised.
+2016-12-24T14:24:15.375 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpnUboN3gaze/gaze.toml
+2016-12-24T14:24:15.375 gaze INFO - Loaded config: {
   "Behaviours": {
     "cmd": {
       "Type": "command",
@@ -115,10 +140,10 @@ $ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpC2X1Bzgaze/
       "IncludeOutput": true,
       "Settings": {
         "args": [
-          "-a",
-          "output.log"
+          "-m",
+          "json.tool"
         ],
-        "command": "tee"
+        "command": "python"
       }
     },
     "logging": {
@@ -149,47 +174,46 @@ $ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpC2X1Bzgaze/
     "tagB"
   ]
 } (err: <nil>)
-2016-12-24T14:12:12.892 gaze INFO - Attempting to use 'date' as commandName
-Sat Dec 24 14:12:12 UYT 2016
-2016-12-24T14:12:12.897 gaze INFO - Command exited with code 0
-2016-12-24T14:12:12.897 gaze INFO - Running behaviour of type command..
-2016-12-24T14:12:12.904 gaze INFO - Behaviour completed.
-2016-12-24T14:12:12.904 gaze INFO - Running behaviour of type logfile..
-2016-12-24T14:12:12.904 gaze INFO - Skipping because it only runs on failures
-2016-12-24T14:12:12.904 gaze INFO - Running behaviour of type web..
-2016-12-24T14:12:12.904 gaze INFO - Making POST request to http://127.0.0.1:8080..
-2016-12-24T14:12:12.906 gaze INFO - Behaviour completed.
+2016-12-24T14:24:15.375 gaze INFO - Attempting to use 'date' as commandName
+Sat Dec 24 14:24:15 UYT 2016
+2016-12-24T14:24:15.380 gaze INFO - Command exited with code 0
+2016-12-24T14:24:15.380 gaze INFO - Running behaviour of type web..
+2016-12-24T14:24:15.380 gaze INFO - Making POST request to http://127.0.0.1:8080..
+2016-12-24T14:24:15.381 gaze INFO - Behaviour completed.
+2016-12-24T14:24:15.381 gaze INFO - Running behaviour of type command..
+2016-12-24T14:24:15.410 gaze INFO - Behaviour completed.
+2016-12-24T14:24:15.410 gaze INFO - Running behaviour of type logfile..
+2016-12-24T14:24:15.410 gaze INFO - Skipping because it only runs on failures
 ```
 
 The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the 
 `web` behaviour. It's output looks something like the following:
 
 ```
-2016-12-24 14:12:12,193 : INFO : Starting example server at: ('', 8080)...
-2016-12-24 14:12:12,905 : INFO : Incoming POST request on /
-2016-12-24 14:12:12,905 : INFO : Header 'content-length' -> '342'
-2016-12-24 14:12:12,905 : INFO : Header 'accept-encoding' -> 'gzip'
-2016-12-24 14:12:12,905 : INFO : Header 'api-token' -> 'MY_TOKEN'
-2016-12-24 14:12:12,905 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
-2016-12-24 14:12:12,905 : INFO : Header 'host' -> '127.0.0.1:8080'
-2016-12-24 14:12:12,905 : INFO : Header 'content-type' -> 'application/json'
-2016-12-24 14:12:12,906 : INFO : Content: {
-  "captured_output": "Sat Dec 24 14:12:12 UYT 2016\n", 
+2016-12-24 14:24:14,505 : INFO : Starting example server at: ('', 8080)...
+2016-12-24 14:24:15,381 : INFO : Incoming POST request on /
+2016-12-24 14:24:15,381 : INFO : Header 'content-length' -> '342'
+2016-12-24 14:24:15,381 : INFO : Header 'accept-encoding' -> 'gzip'
+2016-12-24 14:24:15,381 : INFO : Header 'api-token' -> 'MY_TOKEN'
+2016-12-24 14:24:15,381 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
+2016-12-24 14:24:15,381 : INFO : Header 'host' -> '127.0.0.1:8080'
+2016-12-24 14:24:15,381 : INFO : Header 'content-type' -> 'application/json'
+2016-12-24 14:24:15,381 : INFO : Content: {
+  "captured_output": "Sat Dec 24 14:24:15 UYT 2016\n", 
   "hostname": "Bens-MacBook-Pro.local", 
   "name": "date", 
   "tags": [
     "tagA", 
     "tagB"
   ], 
-  "start_time": "2016-12-24T14:12:12.892806638-03:00", 
+  "start_time": "2016-12-24T14:24:15.375989987-03:00", 
   "exit_description": "Execution finished with no error", 
   "exit_code": 0, 
-  "elapsed_seconds": 0.004512704, 
+  "elapsed_seconds": 0.004340796, 
   "command": [
     "date"
   ], 
-  "end_time": "2016-12-24T14:12:12.897319342-03:00"
+  "end_time": "2016-12-24T14:24:15.380330783-03:00"
 }
-127.0.0.1 - - [24/Dec/2016 14:12:12] "POST / HTTP/1.1" 204 -
-
+127.0.0.1 - - [24/Dec/2016 14:24:15] "POST / HTTP/1.1" 204 -
 ```
