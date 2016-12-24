@@ -11,6 +11,8 @@ import (
 
 	"github.com/AstromechZA/gaze/conf"
 
+	"strings"
+
 	logging "github.com/op/go-logging"
 )
 
@@ -73,6 +75,7 @@ func mainInner() error {
 	jsonFlag := flag.Bool("json", false, "mutes normal stdout and stderr and just outputs the json report on stdout")
 	debugFlag := flag.Bool("debug", false, "mutes normal stdout and stderr and just outputs debug messages")
 	nameFlag := flag.String("name", "", "override the auto generated name for the task")
+	tagsFlag := flag.String("extra-tags", "", "comma-seperated extra tags to add to the structure")
 
 	// set a more verbose usage message.
 	flag.Usage = func() {
@@ -128,6 +131,18 @@ func mainInner() error {
 		}
 	}
 
+	// append extra tags to the config object even though it might be nil
+	var extraTags []string
+	if *tagsFlag != "" {
+		extraTagsRaw := strings.Split(*tagsFlag, ",")
+		for _, t := range extraTagsRaw {
+			t = strings.TrimSpace(t)
+			if len(t) > 0 {
+				extraTags = append(extraTags, t)
+			}
+		}
+	}
+
 	// build command name
 	var commandName string
 	if *nameFlag != "" {
@@ -152,7 +167,7 @@ func mainInner() error {
 
 	// run and generate report
 	forwardOutputToConsole := !*jsonFlag
-	report, err := runReport(flag.Args(), cfg, commandName, forwardOutputToConsole)
+	report, err := runReport(flag.Args(), cfg, commandName, &extraTags, forwardOutputToConsole)
 	if err != nil {
 		return fmt.Errorf("Failed during run and report: %v", err.Error())
 	}

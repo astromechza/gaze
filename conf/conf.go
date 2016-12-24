@@ -15,6 +15,7 @@ type GazeBehaviourConfig struct {
 
 type GazeConfig struct {
 	Behaviours map[string]*GazeBehaviourConfig `toml:"behaviours"`
+	Tags       []string                        `toml:"tags"`
 }
 
 // Load the config information from the file on disk
@@ -169,5 +170,6 @@ func ValidateAndClean(cfg *GazeConfig) error {
 			}
 		}
 	}
+
 	return nil
 }

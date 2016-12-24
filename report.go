@@ -27,6 +27,8 @@ type GazeReport struct {
 	CapturedOutput string `json:"captured_output"`
 
 	Hostname string `json:"hostname"`
+
+	Tags []string `json:"tags"`
 }
 
 func streamToBuffer(r io.Reader, buff *bytes.Buffer) error {
@@ -66,7 +68,7 @@ func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer, forw
 	return stdErrResult
 }
 
-func runReport(args []string, config *conf.GazeConfig, name string, forwardOutput bool) (*GazeReport, error) {
+func runReport(args []string, config *conf.GazeConfig, name string, extraTags *[]string, forwardOutput bool) (*GazeReport, error) {
 	output := new(GazeReport)
 	output.Name = name
 	output.StartTime = time.Now()
@@ -75,6 +77,13 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	output.CapturedOutput = ""
 	output.ElapsedSeconds = 0
 	output.Command = args
+	if config != nil {
+		output.Tags = config.Tags
+	}
+	if output.Tags == nil {
+		output.Tags = make([]string, 0)
+	}
+	output.Tags = append(output.Tags, *extraTags...)
 
 	hn, err := os.Hostname()
 	if err == nil {
