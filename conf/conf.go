@@ -2,6 +2,8 @@ package conf
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 )
@@ -19,11 +21,19 @@ type GazeConfig struct {
 }
 
 // Load the config information from the file on disk
-func Load(path *string) (*GazeConfig, error) {
+func Load(path *string, mustExist bool) (*GazeConfig, error) {
 	var output GazeConfig
 
-	_, err := toml.DecodeFile(*path, &output)
+	configPath, err := filepath.Abs(*path)
 	if err != nil {
+		return nil, fmt.Errorf("Failed to construct config path: %v", err.Error())
+	}
+
+	_, err = toml.DecodeFile(configPath, &output)
+	if err != nil {
+		if os.IsNotExist(err) && !mustExist {
+			return &output, nil
+		}
 		return nil, err
 	}
 
@@ -139,10 +149,6 @@ func ValidateGazeWebBehaviour(input *GazeBehaviourConfig) error {
 func ValidateAndClean(cfg *GazeConfig) error {
 	validTypes := []string{"logfile", "command", "web"}
 	validWhens := []string{"always", "failures", "successes"}
-
-	if len(cfg.Behaviours) == 0 {
-		return fmt.Errorf("At least one behaviour must be configured in the gaze config file")
-	}
 
 	for _, behaviour := range cfg.Behaviours {
 		if !stringIn(behaviour.Type, &validTypes) {

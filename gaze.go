@@ -8,10 +8,9 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/AstromechZA/gaze/conf"
-
-	"strings"
 
 	logging "github.com/op/go-logging"
 )
@@ -105,40 +104,38 @@ func mainInner() error {
 	}
 
 	setupLogging(*debugFlag)
-	log.Info("Logging initialised")
+	log.Info("Logging initialised.")
 
 	var cfg *conf.GazeConfig
-	configRequired := !*jsonFlag
-	if configRequired {
-		// identify config path
-		configPath := (*configFlag)
-		if configPath == "" {
-			usr, _ := user.Current()
-			configPath = filepath.Join(usr.HomeDir, ".config/gaze.toml")
-		}
-		configPath, err := filepath.Abs(configPath)
-		log.Infof("Loading config from %v", configPath)
-		if err != nil {
-			return fmt.Errorf("Failed to identify config path: %v", err.Error())
-		}
-		// load and validate config
-		cfg, err = conf.Load(&configPath)
-		if err != nil {
-			return fmt.Errorf("Failed to load config: %v", err.Error())
-		}
-		if err = conf.ValidateAndClean(cfg); err != nil {
-			return fmt.Errorf("Config failed validation: %v", err.Error())
-		}
+	// identify config path
+	configPath := (*configFlag)
+	configMustExist := true
+	if configPath == "" {
+		configMustExist = false
+		usr, _ := user.Current()
+		configPath = filepath.Join(usr.HomeDir, ".config/gaze.toml")
 	}
 
+	// load and validate config
+	log.Infof("Loading config from %v", configPath)
+	cfg, err := conf.Load(&configPath, configMustExist)
+	if err != nil {
+		return fmt.Errorf("Failed to load config: %v", err.Error())
+	}
+	if err = conf.ValidateAndClean(cfg); err != nil {
+		return fmt.Errorf("Config failed validation: %v", err.Error())
+	}
+
+	j, err := json.MarshalIndent(cfg, "", "  ")
+	log.Infof("Loaded config: %v (err: %v)", string(j), err)
+
 	// append extra tags to the config object even though it might be nil
-	var extraTags []string
 	if *tagsFlag != "" {
 		extraTagsRaw := strings.Split(*tagsFlag, ",")
 		for _, t := range extraTagsRaw {
 			t = strings.TrimSpace(t)
 			if len(t) > 0 {
-				extraTags = append(extraTags, t)
+				cfg.Tags = append(cfg.Tags, t)
 			}
 		}
 	}
@@ -167,7 +164,7 @@ func mainInner() error {
 
 	// run and generate report
 	forwardOutputToConsole := !*jsonFlag
-	report, err := runReport(flag.Args(), cfg, commandName, &extraTags, forwardOutputToConsole)
+	report, err := runReport(flag.Args(), cfg, commandName, forwardOutputToConsole)
 	if err != nil {
 		return fmt.Errorf("Failed during run and report: %v", err.Error())
 	}

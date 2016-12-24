@@ -68,7 +68,7 @@ func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer, forw
 	return stdErrResult
 }
 
-func runReport(args []string, config *conf.GazeConfig, name string, extraTags *[]string, forwardOutput bool) (*GazeReport, error) {
+func runReport(args []string, config *conf.GazeConfig, name string, forwardOutput bool) (*GazeReport, error) {
 	output := new(GazeReport)
 	output.Name = name
 	output.StartTime = time.Now()
@@ -83,7 +83,6 @@ func runReport(args []string, config *conf.GazeConfig, name string, extraTags *[
 	if output.Tags == nil {
 		output.Tags = make([]string, 0)
 	}
-	output.Tags = append(output.Tags, *extraTags...)
 
 	hn, err := os.Hostname()
 	if err == nil {
