@@ -3,7 +3,7 @@
 set -e
 
 # first build the version string
-VERSION_NUM=0.2
+VERSION_NUM=0.3
 
 # add the git commit id and date
 VERSION="$VERSION_NUM (commit $(git rev-parse --short HEAD) @ $(git log -1 --date=short --pretty=format:%cd))"
@@ -28,6 +28,11 @@ function buildbinary {
     file "$outputfolder/gaze"
     echo
 }
+
+# build local 
+unset GOOS
+unset GOARCH
+go build -ldflags "-X \"main.GazeVersion=$VERSION\"" github.com/AstromechZA/gaze
 
 # build for mac
 buildbinary darwin amd64
