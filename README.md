@@ -1,136 +1,115 @@
-# `gaze` - capture and log process execution 
+# `gaze` - capture and log process execution
 
-Gaze is a command line tool that can be used to monitor and report the execution 
-of a command. It becomes really powerful when used in `cron` entries and
-other commands that are run regularly such as scheduled backups and updates. 
-There is no point having a backup procedure that silently fails... 
+Gaze is a command line tool that can be used to monitor and report the execution of a command. It becomes really
+powerful when used in `cron` entries and other commands that are run regularly such as scheduled backups and
+updates. There is no point having a backup procedure that silently fails.
 
-> Warning: most of this has not been implemented yet
 
-### TODO:
+There are 3 types of behaviours that can be invoked once an execution has completed:
+- `logfile` : Simple logging of either structured json or human readable text to a given file path
+- `web` : Submit a POST or PUT request with a json payload to whatever url you want
+- `command` : Run the given command with a json payload piped to stdin
 
-- Execute given arguments
-- Time execution
-- Capture Exit Code 
-- Read config from file
-- `-json` outputs json report on `stdout`. does not read config
-- `-debug` hijacks normal stdout/stderr to print debug messages.
-    conflicts with -json
 
-### Config File Driven
-
-Since adding tons of args to gaze would be cumbersome, most
-of the configuration is provided by a config file in the current user
-home directory (or overridden via the `-config` flag).
-
-This config file defines where reports are logged to and how the reports
-are forwarded to other applications or for further processing.
+Errors triggered while running behaviours do not affect the stdout/stderr output of the
+command being executed and so are only visible when the `-debug` flag is provided. This is to allow commands to be
+transparently logged without affecting other process flow while the captured command is part of a piped chain of
+commands. For Example:
 
 ```
+$ cat /etc/hosts | ./gaze grep localhost | rev
+ecafretni kcabpool eht erugifnoc ot desu si tsohlacol #
+tsohlacol	1.0.0.721
+ tsohlacol             1::
+```
+
+The JSON payload looks something like the following:
+
+```
+$ ./gaze -json sleep 1 | python -m json.tool
+{
+    "captured_output": "",
+    "command": [
+        "sleep",
+        "1"
+    ],
+    "elapsed_seconds": 1.0105761,
+    "end_time": "2016-12-24T13:41:55.963579547-03:00",
+    "exit_code": 0,
+    "exit_description": "Execution finished with no error",
+    "hostname": "Bens-MacBook-Pro.local",
+    "name": "sleep.1",
+    "start_time": "2016-12-24T13:41:54.953003425-03:00",
+    "tags": []
+}
+```
+
+### CLI
+
+```
+$ ./gaze -help
+TODO
+
+  -config string
+    	path to a gaze config file (default = $HOME/.config/gaze.json)
+  -debug
+    	mutes normal stdout and stderr and just outputs debug messages
+  -example-config
+    	output an example config and exit
+  -extra-tags string
+    	comma-seperated extra tags to add to the structure
+  -json
+    	mutes normal stdout and stderr and just outputs the json report on stdout
+  -name string
+    	override the auto generated name for the task
+  -version
+    	Print the version string
+```
+
+### Configuration
+
+
+Behaviours and tags are configured via a config file. The config file is either read from 
+`$HOME/.config/gaze.toml` or from whatever file path the user provides on the `-config` flag. We use a `toml` 
+format for now since it allows quite expressive configuration without the strictness or annoyance of JSON.
+
+For Example:
+
+```
+$ ./gaze -example-config
+tags = ["tagA", "tagB"]
+
 [behaviours]
-
-[[<name of entry>]]
-type = <behaviour type>
-<settings>
-
-[[<name of entry]]
-type = <behaviour type>
-<settings>
-``` 
-
-### Available behaviours
-
-#### Log to file 
-
-Logs the structured report to a rotating log file. This would be the most 
-common behaviour and should generally be there by default. 
-
-```
-type = logfile
-when = <string (always|failure|success)>
-directory = <string default = /var/log/>
-filename = <string default = gaze>
-format = <string (human|machine)>
-rotatepolicy = <string (none|daily|hourly|monthly|1MB|10MB|100MB|NMB)>
-stderrpolicy = <string (include|tail|ignore)>
-stdoutpolicy = <string (include|tail|ignore)>
+  [behaviours.cmd]
+    type = "command"
+    when = "successes"
+    include_output = true
+    [behaviours.cmd.settings]
+      args = ["output.log"]
+      command = "tee"
+  [behaviours.logging]
+    type = "logfile"
+    when = "failures"
+    include_output = false
+    [behaviours.logging.settings]
+      directory = "/var/log"
+      filename = "gaze.log"
+      format = "human"
+  [behaviours.request]
+    type = "web"
+    when = "always"
+    include_output = true
+    [behaviours.request.settings]
+      method = "POST"
+      url = "http://127.0.0.1:9090"
+      [behaviours.request.settings.headers]
+        API-TOKEN = "MY_TOKEN"
 ```
 
-#### Send over http
-
-Sends the json report as a POST or PUT request to a given url.
-
+Specifying the config and watching the debug log:
 ```
-type = web
-when = <string (always|failure|success)>
-method = <string (POST|PUT)
-url = <string>
-headers = <key-values>
-http_proxy = <string>
-https_proxy = <string>
-stderrpolicy = <string (include|tail|ignore)>
-stdoutpolicy = <string (include|tail|ignore)>
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpbOxUgTgaze/gaze.toml -debug date
+2016-12-24T13:41:56.019 gaze INFO - Logging initialised.
+2016-12-24T13:41:56.019 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpbOxUgTgaze/gaze.toml
+Config failed validation: Behaviour of type 'web' headers must be string-string key-values
 ```
-
-#### Run command
-
-Runs the given command with the report supplied via stdin.
-
-```
-type = command
-when = <string (always|failure|success)>
-command = "myscript.sh"
-stderrpolicy = <string (include|tail|ignore)>
-stdoutpolicy = <string (include|tail|ignore)>
-```
-
-The `command` will be run as a shell command, so can include pipings and 
-redirection.
-
-This behaviour is really the most powerful and can be used to achieve some quite
-complex things if necessary:
-
-- send result to monitoring infrastructure (eg: Graphite)
-- send an email or IM message
-
-## Some example scenarios
-
-### Scheduled backups
-
-You have a crontab entry that backs up your database, but you need to make sure
-you are monitoring both the successes and failures of this nightly backup.
-
-Gaze config:
-
-```ini
-[behaviours]
-
-[[log_all]]
-type = log
-when = always
-stderrpolicy = ignore 
-stdoutpolicy = ignore 
-directory = /var/log/backups 
-filename = gazelog.log 
-format = human
-
-[[email_me_failures]]
-type = command 
-when = failure
-stderrpolicy = include 
-stdoutpolicy = ignore 
-command = "mail -s 'Backup failure' admin@example.com"
-```
-
-Crontab:
-
-```
-@daily  gaze -c /backup.toml rsync -a blah blah blah
-```
-
-Now you have a system in place to automatically capture a log file of all
-the backup attempts including execution times, elapsed time, exit codes etc. and
-when failures occur, an email will be sent to you that includes the stderr of 
-the execution.
-
-Easy!

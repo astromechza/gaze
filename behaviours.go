@@ -16,9 +16,17 @@ import (
 func RunCmdBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error {
 	data, _ := json.Marshal(report)
 	commandToRun := config.Settings["command"].(string)
-	argsForCommand := config.Settings["args"].([]string)
+	argsForCommandRaw := config.Settings["args"].([]interface{})
+	argsForCommand := make([]string, len(argsForCommandRaw))
+	for i, r := range argsForCommandRaw {
+		argsForCommand[i] = r.(string)
+	}
 	cmd := exec.Command(commandToRun, argsForCommand...)
 	cmd.Stdin = bytes.NewReader(data)
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
 	return cmd.Wait()
 }
 
@@ -29,14 +37,14 @@ func RunWebBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 	// pull stuff out of settings
 	url := config.Settings["url"].(string)
 	method := config.Settings["method"].(string)
-	extraHeaders := config.Settings["headers"].(map[string]string)
+	extraHeaders := config.Settings["headers"].(map[string]interface{})
 
 	// construct the thing
 	log.Infof("Making %v request to %v..", method, url)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 	for headerName, headerContent := range extraHeaders {
-		req.Header.Set(headerName, headerContent)
+		req.Header.Set(headerName, headerContent.(string))
 	}
 
 	// do the thing

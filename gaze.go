@@ -12,6 +12,7 @@ import (
 
 	"github.com/AstromechZA/gaze/conf"
 
+	"github.com/BurntSushi/toml"
 	logging "github.com/op/go-logging"
 )
 
@@ -75,6 +76,7 @@ func mainInner() error {
 	debugFlag := flag.Bool("debug", false, "mutes normal stdout and stderr and just outputs debug messages")
 	nameFlag := flag.String("name", "", "override the auto generated name for the task")
 	tagsFlag := flag.String("extra-tags", "", "comma-seperated extra tags to add to the structure")
+	exampleConfigFlag := flag.Bool("example-config", false, "output an example config and exit")
 
 	// set a more verbose usage message.
 	flag.Usage = func() {
@@ -90,6 +92,13 @@ func mainInner() error {
 		fmt.Println(logoImage)
 		fmt.Println("Project: https://github.com/AstromechZA/gaze")
 		return nil
+	}
+
+	// example config
+	if *exampleConfigFlag {
+		cfg := conf.GenerateExample()
+		e := toml.NewEncoder(os.Stdout)
+		return e.Encode(cfg)
 	}
 
 	// json and debug conflict
@@ -201,7 +210,9 @@ func mainInner() error {
 			} else {
 				panic(fmt.Sprintf(">>> err: unknown behaviour type: %v", bref.Type))
 			}
-			if err != nil {
+			if err == nil {
+				log.Info("Behaviour completed.")
+			} else {
 				log.Errorf("Behaviour '%v' failed!: %v", bref.Type, err.Error())
 			}
 		}
