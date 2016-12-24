@@ -73,13 +73,21 @@ def generate_content():
     srvout, _ = proc.communicate()
 
     lines.append(dedent("""\
-    The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the 
+    The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the
     `web` behaviour. It's output looks something like the following:
 
     ```
     {}
     ```
     """).format(srvout.strip()))
+
+    lines.append("### What is the `ulid`?")
+    lines.append("")
+    lines.append(dedent("""\
+    A `ulid` (https://github.com/oklog/ulid) is a useful UUID alternative that is added as a unique identifier for each
+    report payload. You can use this to log the event and have it corrospond with whatever remote data store
+    is consuming the `web` request. The timstamp in the ulid payload is the same as the `end_time`.
+    """))
 
     text = "\n".join(lines)
     if not text.endswith("\n"):

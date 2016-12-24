@@ -5,15 +5,20 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
 
 	"github.com/AstromechZA/gaze/conf"
+
+	"github.com/oklog/ulid"
 )
 
 type GazeReport struct {
+	Ulid string `json:"ulid"`
+
 	Name    string   `json:"name"`
 	Command []string `json:"command"`
 
@@ -70,6 +75,7 @@ func setupReadAll(stdoutPipe, stderrPipe io.ReadCloser, buff *bytes.Buffer, forw
 
 func runReport(args []string, config *conf.GazeConfig, name string, forwardOutput bool) (*GazeReport, error) {
 	output := new(GazeReport)
+	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 	output.Name = name
 	output.StartTime = time.Now()
 	output.ExitCode = 0
@@ -92,6 +98,7 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	defer func() {
 		output.EndTime = time.Now()
 		output.ElapsedSeconds = float32(output.EndTime.Sub(output.StartTime)) / float32(time.Second)
+		output.Ulid = ulid.MustNew(ulid.Timestamp(output.EndTime), randSource).String()
 	}()
 
 	// run command
