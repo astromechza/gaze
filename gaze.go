@@ -12,7 +12,7 @@ import (
 
 	"github.com/AstromechZA/gaze/conf"
 
-	"github.com/BurntSushi/toml"
+	"github.com/go-yaml/yaml"
 	logging "github.com/op/go-logging"
 )
 
@@ -97,8 +97,12 @@ func mainInner() error {
 	// example config
 	if *exampleConfigFlag {
 		cfg := conf.GenerateExample()
-		e := toml.NewEncoder(os.Stdout)
-		return e.Encode(cfg)
+		cfgBytes, err := yaml.Marshal(cfg)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(cfgBytes))
+		return nil
 	}
 
 	// json and debug conflict
@@ -122,7 +126,7 @@ func mainInner() error {
 	if configPath == "" {
 		configMustExist = false
 		usr, _ := user.Current()
-		configPath = filepath.Join(usr.HomeDir, ".config/gaze.toml")
+		configPath = filepath.Join(usr.HomeDir, ".config/gaze.yaml")
 	}
 
 	// load and validate config

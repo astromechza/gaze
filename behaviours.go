@@ -37,14 +37,14 @@ func RunWebBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 	// pull stuff out of settings
 	url := config.Settings["url"].(string)
 	method := config.Settings["method"].(string)
-	extraHeaders := config.Settings["headers"].(map[string]interface{})
+	extraHeaders := config.Settings["headers"].(map[string]string)
 
 	// construct the thing
 	log.Infof("Making %v request to %v..", method, url)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 	for headerName, headerContent := range extraHeaders {
-		req.Header.Set(headerName, headerContent.(string))
+		req.Header.Set(headerName, headerContent)
 	}
 
 	// do the thing

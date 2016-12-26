@@ -2,25 +2,28 @@ package conf
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/BurntSushi/toml"
+	"reflect"
+
+	"github.com/go-yaml/yaml"
 	logging "github.com/op/go-logging"
 )
 
 var log = logging.MustGetLogger("gaze.conf")
 
 type GazeBehaviourConfig struct {
-	Type          string                 `toml:"type"`
-	When          string                 `toml:"when"`
-	IncludeOutput bool                   `toml:"include_output"`
-	Settings      map[string]interface{} `toml:"settings"`
+	Type          string                 `yaml:"type"`
+	When          string                 `yaml:"when"`
+	IncludeOutput bool                   `yaml:"include_output"`
+	Settings      map[string]interface{} `yaml:"settings"`
 }
 
 type GazeConfig struct {
-	Behaviours map[string]*GazeBehaviourConfig `toml:"behaviours"`
-	Tags       []string                        `toml:"tags"`
+	Behaviours map[string]*GazeBehaviourConfig `yaml:"behaviours"`
+	Tags       []string                        `yaml:"tags"`
 }
 
 // Load the config information from the file on disk
@@ -32,12 +35,17 @@ func Load(path *string, mustExist bool) (*GazeConfig, error) {
 		return nil, fmt.Errorf("Failed to construct config path: %v", err.Error())
 	}
 
-	_, err = toml.DecodeFile(configPath, &output)
+	configBytes, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) && !mustExist {
 			log.Warningf("Config file %v does not exist, but we don't require it so using an empty config struct anyway!", configPath)
 			return &output, nil
 		}
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(configBytes, &output)
+	if err != nil {
 		return nil, err
 	}
 
@@ -185,17 +193,18 @@ func ValidateGazeWebBehaviour(input *GazeBehaviourConfig) error {
 	}
 	headersV, ok := input.Settings["headers"]
 	if ok {
-		_, ok := headersV.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("Behaviour of type '%v' headers must contain key-value pairs", input.Type)
-		}
-		headersVM := headersV.(map[string]interface{})
-		for _, v := range headersVM {
-			_, ok := v.(string)
-			if !ok {
+		fmt.Println(reflect.TypeOf(headersV))
+		headersVM := headersV.(map[interface{}]interface{})
+		converted := make(map[string]string)
+		for k, v := range headersVM {
+			kv, kok := k.(string)
+			vv, vok := v.(string)
+			if !kok || !vok {
 				return fmt.Errorf("Behaviour of type '%v' headers can only be string-string pairs", input.Type)
 			}
+			converted[kv] = vv
 		}
+		input.Settings["headers"] = converted
 	} else {
 		input.Settings["headers"] = make(map[string]string)
 	}

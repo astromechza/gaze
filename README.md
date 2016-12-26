@@ -34,15 +34,15 @@ $ ./gaze -json sleep 1 | python -m json.tool
         "sleep",
         "1"
     ],
-    "elapsed_seconds": 1.0119662,
-    "end_time": "2016-12-24T17:51:42.509129619-03:00",
+    "elapsed_seconds": 1.0080459,
+    "end_time": "2016-12-26T13:11:29.814889492-03:00",
     "exit_code": 0,
     "exit_description": "Execution finished with no error",
     "hostname": "Bens-MacBook-Pro.local",
     "name": "sleep.1",
-    "start_time": "2016-12-24T17:51:41.497163379-03:00",
+    "start_time": "2016-12-26T13:11:28.806843591-03:00",
     "tags": [],
-    "ulid": "01B4S9MZ9D0JB0MDW4DVKHS3K9"
+    "ulid": "01B4XYDAMP3HZ355KWG43K57DB"
 }
 ```
 
@@ -50,7 +50,7 @@ $ ./gaze -json sleep 1 | python -m json.tool
 
 ```
 $ ./gaze -version
-Version: <unofficial build>
+Version: 0.4 (commit 865add7 @ 2016-12-24)
 
  .    '                   .  "   '
             .  .  .                 '      '
@@ -92,48 +92,52 @@ TODO
 ### Configuration
 
 Behaviours and tags are configured via a config file. The config file is either read from 
-`$HOME/.config/gaze.toml` or from whatever file path the user provides on the `-config` flag. We use a `toml` 
+`$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml` 
 format for now since it allows quite expressive configuration without the strictness or annoyance of JSON.
 
 For Example:
 
 ```
 $ ./gaze -example-config
-tags = ["tagA", "tagB"]
-
-[behaviours]
-  [behaviours.cmd]
-    type = "command"
-    when = "successes"
-    include_output = true
-    [behaviours.cmd.settings]
-      args = ["-m", "json.tool"]
-      command = "python"
-  [behaviours.logging]
-    type = "logfile"
-    when = "failures"
-    include_output = false
-    [behaviours.logging.settings]
-      directory = "/var/log"
-      filename = "gaze.log"
-      format = "human"
-  [behaviours.request]
-    type = "web"
-    when = "always"
-    include_output = true
-    [behaviours.request.settings]
-      method = "POST"
-      url = "http://127.0.0.1:8080"
-      [behaviours.request.settings.headers]
-        API-TOKEN = "MY_TOKEN"
+behaviours:
+  cmd:
+    type: command
+    when: successes
+    include_output: true
+    settings:
+      args:
+      - -m
+      - json.tool
+      command: python
+  logging:
+    type: logfile
+    when: failures
+    include_output: false
+    settings:
+      directory: /var/log
+      filename: gaze.log
+      format: human
+  request:
+    type: web
+    when: always
+    include_output: true
+    settings:
+      headers:
+        API-TOKEN: MY_TOKEN
+      method: POST
+      url: http://127.0.0.1:8080
+tags:
+- tagA
+- tagB
 ```
 
 Specifying the config and watching the debug log:
 ```
-$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpMb0k8Rgaze/gaze.toml -debug date
-2016-12-24T17:51:43.585 gaze INFO - Logging initialised.
-2016-12-24T17:51:43.585 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpMb0k8Rgaze/gaze.toml
-2016-12-24T17:51:43.585 gaze INFO - Loaded config: {
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpcPR2qXgaze/gaze.yaml -debug date
+2016-12-26T13:11:30.883 gaze INFO - Logging initialised.
+2016-12-26T13:11:30.883 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpcPR2qXgaze/gaze.yaml
+map[interface {}]interface {}
+2016-12-26T13:11:30.884 gaze INFO - Loaded config: {
   "Behaviours": {
     "cmd": {
       "Type": "command",
@@ -175,49 +179,49 @@ $ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpMb0k8Rgaze/
     "tagB"
   ]
 } (err: <nil>)
-2016-12-24T17:51:43.585 gaze INFO - Attempting to use 'date' as commandName
-Sat Dec 24 17:51:43 UYT 2016
-2016-12-24T17:51:43.589 gaze INFO - Command exited with code 0
-2016-12-24T17:51:43.589 gaze INFO - Running behaviour of type logfile..
-2016-12-24T17:51:43.589 gaze INFO - Skipping because it only runs on failures
-2016-12-24T17:51:43.589 gaze INFO - Running behaviour of type web..
-2016-12-24T17:51:43.590 gaze INFO - Making POST request to http://127.0.0.1:8080..
-2016-12-24T17:51:43.594 gaze INFO - Behaviour completed.
-2016-12-24T17:51:43.594 gaze INFO - Running behaviour of type command..
-2016-12-24T17:51:43.624 gaze INFO - Behaviour completed.
+2016-12-26T13:11:30.884 gaze INFO - Attempting to use 'date' as commandName
+Mon Dec 26 13:11:30 UYT 2016
+2016-12-26T13:11:30.888 gaze INFO - Command exited with code 0
+2016-12-26T13:11:30.888 gaze INFO - Running behaviour of type command..
+2016-12-26T13:11:30.919 gaze INFO - Behaviour completed.
+2016-12-26T13:11:30.919 gaze INFO - Running behaviour of type logfile..
+2016-12-26T13:11:30.919 gaze INFO - Skipping because it only runs on failures
+2016-12-26T13:11:30.919 gaze INFO - Running behaviour of type web..
+2016-12-26T13:11:30.919 gaze INFO - Making POST request to http://127.0.0.1:8080..
+2016-12-26T13:11:30.921 gaze INFO - Behaviour completed.
 ```
 
 The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the
 `web` behaviour. It's output looks something like the following:
 
 ```
-2016-12-24 17:51:43,261 : INFO : Starting example server at: ('', 8080)...
-2016-12-24 17:51:43,591 : INFO : Incoming POST request on /
-2016-12-24 17:51:43,591 : INFO : Header 'content-length' -> '378'
-2016-12-24 17:51:43,591 : INFO : Header 'accept-encoding' -> 'gzip'
-2016-12-24 17:51:43,591 : INFO : Header 'api-token' -> 'MY_TOKEN'
-2016-12-24 17:51:43,591 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
-2016-12-24 17:51:43,591 : INFO : Header 'host' -> '127.0.0.1:8080'
-2016-12-24 17:51:43,591 : INFO : Header 'content-type' -> 'application/json'
-2016-12-24 17:51:43,591 : INFO : Content: {
-  "captured_output": "Sat Dec 24 17:51:43 UYT 2016\n", 
+2016-12-26 13:11:29,901 : INFO : Starting example server at: ('', 8080)...
+2016-12-26 13:11:30,920 : INFO : Incoming POST request on /
+2016-12-26 13:11:30,920 : INFO : Header 'content-length' -> '377'
+2016-12-26 13:11:30,920 : INFO : Header 'accept-encoding' -> 'gzip'
+2016-12-26 13:11:30,920 : INFO : Header 'api-token' -> 'MY_TOKEN'
+2016-12-26 13:11:30,920 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
+2016-12-26 13:11:30,920 : INFO : Header 'host' -> '127.0.0.1:8080'
+2016-12-26 13:11:30,920 : INFO : Header 'content-type' -> 'application/json'
+2016-12-26 13:11:30,920 : INFO : Content: {
+  "captured_output": "Mon Dec 26 13:11:30 UYT 2016\n", 
   "hostname": "Bens-MacBook-Pro.local", 
   "name": "date", 
   "tags": [
     "tagA", 
     "tagB"
   ], 
-  "start_time": "2016-12-24T17:51:43.585628805-03:00", 
+  "start_time": "2016-12-26T13:11:30.884333279-03:00", 
   "exit_description": "Execution finished with no error", 
   "exit_code": 0, 
-  "ulid": "01B4S9N0B5G5W2BE0HV2T434WV", 
-  "elapsed_seconds": 0.004291463, 
+  "ulid": "01B4XYDBP86FGNBSB9PT5ZXV5M", 
+  "elapsed_seconds": 0.00397501, 
   "command": [
     "date"
   ], 
-  "end_time": "2016-12-24T17:51:43.589920268-03:00"
+  "end_time": "2016-12-26T13:11:30.888308289-03:00"
 }
-127.0.0.1 - - [24/Dec/2016 17:51:43] "POST / HTTP/1.1" 204 -
+127.0.0.1 - - [26/Dec/2016 13:11:30] "POST / HTTP/1.1" 204 -
 ```
 
 ### What is the `ulid`?
@@ -225,3 +229,4 @@ The provided `example_python_receiver.py` script acts as an example web server a
 A `ulid` (https://github.com/oklog/ulid) is a useful UUID alternative that is added as a unique identifier for each
 report payload. You can use this to log the event and have it corrospond with whatever remote data store
 is consuming the `web` request. The timstamp in the ulid payload is the same as the `end_time`.
+

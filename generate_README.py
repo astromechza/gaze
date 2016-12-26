@@ -48,13 +48,13 @@ def generate_content():
     lines.append("### CLI")
     lines.append("")
     add_command_example(lines, "./gaze -version")
-    add_command_example(lines, "./gaze -help")
+    add_command_example(lines, "./gaze -help", allow_failures=True)
 
     lines.append("### Configuration")
     lines.append("")
     lines.append(dedent("""\
     Behaviours and tags are configured via a config file. The config file is either read from 
-    `$HOME/.config/gaze.toml` or from whatever file path the user provides on the `-config` flag. We use a `toml` 
+    `$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml` 
     format for now since it allows quite expressive configuration without the strictness or annoyance of JSON."""))
     lines.append("")
     lines.append("For Example:")
@@ -95,13 +95,17 @@ def generate_content():
     return text
 
 
-def add_command_example(lines, command):
+def add_command_example(lines, command, allow_failures=False):
     lines.append("```")
     lines.append("$ {}".format(command))
 
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
+        if not allow_failures:
+            print e.output
+            print e.returncode
+            raise
         output = e.output
 
     lines.append(output.strip())
@@ -112,7 +116,7 @@ def add_command_example(lines, command):
 def generate_example_config_file():
     example_config = subprocess.check_output("./gaze -example-config", shell=True)
     tempdir = tempfile.mkdtemp("gaze")
-    configfile = os.path.join(tempdir, "gaze.toml")
+    configfile = os.path.join(tempdir, "gaze.yaml")
     with open(configfile, 'w') as f:
         f.write(example_config)
     return configfile
