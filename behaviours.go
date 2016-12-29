@@ -60,7 +60,7 @@ func RunWebBehaviour(report *GazeReport, config *conf.GazeBehaviourConfig) error
 
 	// throw error if necessary
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		log.Infof("Request returned code %v: %v", resp.Status, body)
+		log.Infof("Request returned code %v: %v", resp.Status, string(body))
 		return fmt.Errorf("%v request to %v failed with code %v", method, url, resp.StatusCode)
 	}
 
