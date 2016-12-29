@@ -71,7 +71,7 @@ func mainInner() error {
 
 	// first set up config flag options
 	versionFlag := flag.Bool("version", false, "Print the version string")
-	configFlag := flag.String("config", "", "path to a gaze config file (default = $HOME/.config/gaze.json)")
+	configFlag := flag.String("config", "", "path to a gaze config file (default = $HOME/.config/gaze.yaml)")
 	jsonFlag := flag.Bool("json", false, "mutes normal stdout and stderr and just outputs the json report on stdout")
 	debugFlag := flag.Bool("debug", false, "mutes normal stdout and stderr and just outputs debug messages")
 	nameFlag := flag.String("name", "", "override the auto generated name for the task")
