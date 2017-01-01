@@ -1,0 +1,36 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "kPVeSy1EzVov+B5aSkDVG/YLShU=",
+			"path": "github.com/ScaleFT/monotime",
+			"revision": "94680d646cd4cd535670668591a8dcb142eb7f0d",
+			"revisionTime": "2016-11-24T17:11:54Z"
+		},
+		{
+			"checksumSHA1": "lK6EBJMd+/4JMOm1Ud0mncc6tA0=",
+			"path": "github.com/go-yaml/yaml",
+			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0"
+		},
+		{
+			"checksumSHA1": "7n2+fIJZukMVksERylh8PZpq5vM=",
+			"comment": "v0.2.0-3-g8b9f7b2",
+			"path": "github.com/oklog/ulid",
+			"revision": "8b9f7b2e10851b5f1737ce00fa2bedc814e83934"
+		},
+		{
+			"checksumSHA1": "BoXdUBWB8UnSlFlbnuTQaPqfCGk=",
+			"comment": "v1-7-g970db52",
+			"path": "github.com/op/go-logging",
+			"revision": "970db520ece77730c7e4724c61121037378659d9"
+		},
+		{
+			"checksumSHA1": "kQB2wRB3twjUp615F6zEwGHjNe0=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
+			"revisionTime": "2016-12-14T18:38:57Z"
+		}
+	],
+	"rootPath": "github.com/AstromechZA/gaze"
+}

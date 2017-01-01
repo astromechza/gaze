@@ -13,6 +13,7 @@ import (
 
 	"github.com/AstromechZA/gaze/conf"
 
+	"github.com/ScaleFT/monotime"
 	"github.com/oklog/ulid"
 )
 
@@ -78,11 +79,13 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 	randSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 	output.Name = name
 	output.StartTime = time.Now()
+	monotimer := monotime.New()
 	output.ExitCode = 0
 	output.ExitDescription = "No description added"
 	output.CapturedOutput = ""
 	output.ElapsedSeconds = 0
 	output.Command = args
+
 	if config != nil {
 		output.Tags = config.Tags
 	}
@@ -97,7 +100,7 @@ func runReport(args []string, config *conf.GazeConfig, name string, forwardOutpu
 
 	defer func() {
 		output.EndTime = time.Now()
-		output.ElapsedSeconds = float32(output.EndTime.Sub(output.StartTime)) / float32(time.Second)
+		output.ElapsedSeconds = float32(monotimer.Elapsed()) / float32(time.Second)
 		output.Ulid = ulid.MustNew(ulid.Timestamp(output.EndTime), randSource).String()
 	}()
 
