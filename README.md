@@ -34,15 +34,18 @@ $ ./gaze -json sleep 1 | python -m json.tool
         "sleep",
         "1"
     ],
-    "elapsed_seconds": 1.0102024,
-    "end_time": "2016-12-29T19:19:57.925898596-03:00",
+    "elapsed_seconds": 1.0095478,
+    "end_time": "2017-01-01T13:12:27.707193351-03:00",
     "exit_code": 0,
     "exit_description": "Execution finished with no error",
     "hostname": "Bens-MacBook-Pro.local",
     "name": "sleep.1",
-    "start_time": "2016-12-29T19:19:56.915696142-03:00",
-    "tags": [],
-    "ulid": "01B56AP5K5XSDY3SEDK8SBAXTP"
+    "start_time": "2017-01-01T13:12:26.697532854-03:00",
+    "tags": [
+        "testing",
+        "sometag"
+    ],
+    "ulid": "01B5DCVD5VVX3VHJ340FC5SDGE"
 }
 ```
 
@@ -50,7 +53,7 @@ $ ./gaze -json sleep 1 | python -m json.tool
 
 ```
 $ ./gaze -version
-Version: <unofficial build>
+Version: 0.5 (commit 8b1d3ff @ 2016-12-29)
 
  .    '                   .  "   '
             .  .  .                 '      '
@@ -74,7 +77,7 @@ $ ./gaze -help
 TODO
 
   -config string
-    	path to a gaze config file (default = $HOME/.config/gaze.json)
+    	path to a gaze config file (default = $HOME/.config/gaze.yaml)
   -debug
     	mutes normal stdout and stderr and just outputs debug messages
   -example-config
@@ -133,11 +136,11 @@ tags:
 
 Specifying the config and watching the debug log:
 ```
-$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpZQCHPXgaze/gaze.yaml -debug date
-2016-12-29T19:19:58.998 gaze INFO - Logging initialised.
-2016-12-29T19:19:58.998 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpZQCHPXgaze/gaze.yaml
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpGne3JDgaze/gaze.yaml -debug date
+2017-01-01T13:12:28.779 gaze INFO - Logging initialised.
+2017-01-01T13:12:28.779 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpGne3JDgaze/gaze.yaml
 map[interface {}]interface {}
-2016-12-29T19:19:58.998 gaze INFO - Loaded config: {
+2017-01-01T13:12:28.779 gaze INFO - Loaded config: {
   "Behaviours": {
     "cmd": {
       "Type": "command",
@@ -179,49 +182,49 @@ map[interface {}]interface {}
     "tagB"
   ]
 } (err: <nil>)
-2016-12-29T19:19:58.998 gaze INFO - Attempting to use 'date' as commandName
-Thu Dec 29 19:19:59 UYT 2016
-2016-12-29T19:19:59.002 gaze INFO - Command exited with code 0
-2016-12-29T19:19:59.002 gaze INFO - Running behaviour of type command..
-2016-12-29T19:19:59.029 gaze INFO - Behaviour completed.
-2016-12-29T19:19:59.029 gaze INFO - Running behaviour of type logfile..
-2016-12-29T19:19:59.029 gaze INFO - Skipping because it only runs on failures
-2016-12-29T19:19:59.029 gaze INFO - Running behaviour of type web..
-2016-12-29T19:19:59.029 gaze INFO - Making POST request to http://127.0.0.1:8080..
-2016-12-29T19:19:59.030 gaze INFO - Behaviour completed.
+2017-01-01T13:12:28.779 gaze INFO - Attempting to use 'date' as commandName
+Sun Jan  1 13:12:28 UYT 2017
+2017-01-01T13:12:28.783 gaze INFO - Command exited with code 0
+2017-01-01T13:12:28.783 gaze INFO - Running behaviour of type command..
+2017-01-01T13:12:28.811 gaze INFO - Behaviour completed.
+2017-01-01T13:12:28.811 gaze INFO - Running behaviour of type logfile..
+2017-01-01T13:12:28.811 gaze INFO - Skipping because it only runs on failures
+2017-01-01T13:12:28.811 gaze INFO - Running behaviour of type web..
+2017-01-01T13:12:28.811 gaze INFO - Making POST request to http://127.0.0.1:8080..
+2017-01-01T13:12:28.813 gaze INFO - Behaviour completed.
 ```
 
 The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the
 `web` behaviour. It's output looks something like the following:
 
 ```
-2016-12-29 19:19:58,009 : INFO : Starting example server at: ('', 8080)...
-2016-12-29 19:19:59,030 : INFO : Incoming POST request on /
-2016-12-29 19:19:59,030 : INFO : Header 'content-length' -> '378'
-2016-12-29 19:19:59,030 : INFO : Header 'accept-encoding' -> 'gzip'
-2016-12-29 19:19:59,030 : INFO : Header 'api-token' -> 'MY_TOKEN'
-2016-12-29 19:19:59,030 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
-2016-12-29 19:19:59,030 : INFO : Header 'host' -> '127.0.0.1:8080'
-2016-12-29 19:19:59,030 : INFO : Header 'content-type' -> 'application/json'
-2016-12-29 19:19:59,030 : INFO : Content: {
-  "captured_output": "Thu Dec 29 19:19:59 UYT 2016\n", 
+2017-01-01 13:12:28,381 : INFO : Starting example server at: ('', 8080)...
+2017-01-01 13:12:28,812 : INFO : Incoming POST request on /
+2017-01-01 13:12:28,812 : INFO : Header 'content-length' -> '378'
+2017-01-01 13:12:28,812 : INFO : Header 'accept-encoding' -> 'gzip'
+2017-01-01 13:12:28,812 : INFO : Header 'api-token' -> 'MY_TOKEN'
+2017-01-01 13:12:28,812 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
+2017-01-01 13:12:28,812 : INFO : Header 'host' -> '127.0.0.1:8080'
+2017-01-01 13:12:28,812 : INFO : Header 'content-type' -> 'application/json'
+2017-01-01 13:12:28,812 : INFO : Content: {
+  "captured_output": "Sun Jan  1 13:12:28 UYT 2017\n", 
   "hostname": "Bens-MacBook-Pro.local", 
   "name": "date", 
   "tags": [
     "tagA", 
     "tagB"
   ], 
-  "start_time": "2016-12-29T19:19:58.998669311-03:00", 
+  "start_time": "2017-01-01T13:12:28.779605964-03:00", 
   "exit_description": "Execution finished with no error", 
   "exit_code": 0, 
-  "ulid": "01B56AP6MT8EN603MDKK9SEYDD", 
-  "elapsed_seconds": 0.003946062, 
+  "ulid": "01B5DCVE7FEGT90DK71025W5YC", 
+  "elapsed_seconds": 0.004023236, 
   "command": [
     "date"
   ], 
-  "end_time": "2016-12-29T19:19:59.002615373-03:00"
+  "end_time": "2017-01-01T13:12:28.783630116-03:00"
 }
-127.0.0.1 - - [29/Dec/2016 19:19:59] "POST / HTTP/1.1" 204 -
+127.0.0.1 - - [01/Jan/2017 13:12:28] "POST / HTTP/1.1" 204 -
 ```
 
 ### What is the `ulid`?
