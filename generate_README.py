@@ -45,6 +45,12 @@ def generate_content():
     lines.append("")
     add_command_example(lines, "./gaze -json sleep 1 | python -m json.tool")
 
+    lines.append(dedent("""\
+    **Note:** The elapsed time is calculated using a monotonic clock source (https://github.com/ScaleFT/monotime) and 
+    so should be resistent to affects of NTP, time changes, leap seconds etc.. This also means that the elapsed seconds
+    can be different to the gap between start and end times.
+    """))
+
     lines.append("### CLI")
     lines.append("")
     add_command_example(lines, "./gaze -version")
