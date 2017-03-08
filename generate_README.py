@@ -28,8 +28,8 @@ def generate_content():
     """))
 
     lines.append(dedent("""\
-    The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to 
-    generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or 
+    The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to
+    generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or
     use `command` to launch a script that submits data to a `graphite` monitoring instance.
     """))
 
@@ -46,7 +46,7 @@ def generate_content():
     add_command_example(lines, "./gaze -json sleep 1 | python -m json.tool")
 
     lines.append(dedent("""\
-    **Note:** The elapsed time is calculated using a monotonic clock source (https://github.com/ScaleFT/monotime) and 
+    **Note:** The elapsed time is calculated using a monotonic clock source (https://github.com/ScaleFT/monotime) and
     so should be resistent to affects of NTP, time changes, leap seconds etc.. This also means that the elapsed seconds
     can be different to the gap between start and end times.
     """))
@@ -56,11 +56,21 @@ def generate_content():
     add_command_example(lines, "./gaze -version")
     add_command_example(lines, "./gaze -help", allow_failures=True)
 
+    lines.append("### Installation")
+    lines.append("")
+    lines.append(dedent("""\
+    Pretty simple and platform independent:
+
+    1. Download the latest `gaze-VERSION` tar gz for your system from the releases page on Github
+    2. Extract it
+    3. Place the `gaze` executable anywhere on your path
+    """))
+
     lines.append("### Configuration")
     lines.append("")
     lines.append(dedent("""\
-    Behaviours and tags are configured via a config file. The config file is either read from 
-    `$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml` 
+    Behaviours and tags are configured via a config file. The config file is either read from
+    `$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml`
     format for now since it allows quite expressive configuration without the strictness or annoyance of JSON."""))
     lines.append("")
     lines.append("For Example:")

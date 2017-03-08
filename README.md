@@ -8,8 +8,8 @@ There are 3 types of behaviours that can be invoked once an execution has comple
 - `command` : Run the given command with a json payload piped to stdin
 - `logfile` : Simple logging of either structured json or human readable text to a given file path
 
-The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to 
-generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or 
+The `web` and `command` behaviours are the most valuable as they allow you to take action upon failures or to
+generally monitor the health of the command being run. Use `web` to submit the payload to your own dashboard or
 use `command` to launch a script that submits data to a `graphite` monitoring instance.
 
 Errors triggered while running behaviours do not affect the stdout/stderr output of the
@@ -34,22 +34,22 @@ $ ./gaze -json sleep 1 | python -m json.tool
         "sleep",
         "1"
     ],
-    "elapsed_seconds": 1.0086708,
-    "end_time": "2017-03-08T23:26:31.816432321+02:00",
+    "elapsed_seconds": 1.0113387,
+    "end_time": "2017-03-08T23:36:40.127901085+02:00",
     "exit_code": 0,
     "exit_description": "Execution finished with no error",
     "hostname": "Bens-MacBook-Pro.local",
     "name": "sleep.1",
-    "start_time": "2017-03-08T23:26:30.807758648+02:00",
+    "start_time": "2017-03-08T23:36:39.116516707+02:00",
     "tags": [
         "testing",
         "sometag"
     ],
-    "ulid": "01BAQX1XM8FTNE28MHBEVSRQBW"
+    "ulid": "01BAQXMFNZCFZYVSVAWYMTA4KG"
 }
 ```
 
-**Note:** The elapsed time is calculated using a monotonic clock source (https://github.com/ScaleFT/monotime) and 
+**Note:** The elapsed time is calculated using a monotonic clock source (https://github.com/ScaleFT/monotime) and
 so should be resistent to affects of NTP, time changes, leap seconds etc.. This also means that the elapsed seconds
 can be different to the gap between start and end times.
 
@@ -101,10 +101,18 @@ See the documentation at https://github.com/AstromechZA/gaze for more.
     	Print the version string
 ```
 
+### Installation
+
+Pretty simple and platform independent:
+
+1. Download the latest `gaze-VERSION` tar gz for your system from the releases page on Github
+2. Extract it
+3. Place the `gaze` executable anywhere on your path
+
 ### Configuration
 
-Behaviours and tags are configured via a config file. The config file is either read from 
-`$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml` 
+Behaviours and tags are configured via a config file. The config file is either read from
+`$HOME/.config/gaze.yaml` or from whatever file path the user provides on the `-config` flag. We use a `yaml`
 format for now since it allows quite expressive configuration without the strictness or annoyance of JSON.
 
 For Example:
@@ -145,11 +153,11 @@ tags:
 
 Specifying the config and watching the debug log:
 ```
-$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpJPlQ0Igaze/gaze.yaml -debug date
-2017-03-08T23:26:32.902 gaze INFO - Logging initialised.
-2017-03-08T23:26:32.902 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpJPlQ0Igaze/gaze.yaml
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpbK4e7Kgaze/gaze.yaml -debug date
+2017-03-08T23:36:41.206 gaze INFO - Logging initialised.
+2017-03-08T23:36:41.206 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpbK4e7Kgaze/gaze.yaml
 map[interface {}]interface {}
-2017-03-08T23:26:32.902 gaze INFO - Loaded config: {
+2017-03-08T23:36:41.207 gaze INFO - Loaded config: {
   "Behaviours": {
     "cmd": {
       "Type": "command",
@@ -191,49 +199,49 @@ map[interface {}]interface {}
     "tagB"
   ]
 } (err: <nil>)
-2017-03-08T23:26:32.902 gaze INFO - Attempting to use 'date' as commandName
-Wed Mar  8 23:26:32 SAST 2017
-2017-03-08T23:26:32.908 gaze INFO - Command exited with code 0
-2017-03-08T23:26:32.908 gaze INFO - Running behaviour of type command..
-2017-03-08T23:26:32.936 gaze INFO - Behaviour completed.
-2017-03-08T23:26:32.936 gaze INFO - Running behaviour of type logfile..
-2017-03-08T23:26:32.936 gaze INFO - Skipping because it only runs on failures
-2017-03-08T23:26:32.936 gaze INFO - Running behaviour of type web..
-2017-03-08T23:26:32.936 gaze INFO - Making POST request to http://127.0.0.1:8080..
-2017-03-08T23:26:32.938 gaze INFO - Behaviour completed.
+2017-03-08T23:36:41.207 gaze INFO - Attempting to use 'date' as commandName
+Wed Mar  8 23:36:41 SAST 2017
+2017-03-08T23:36:41.212 gaze INFO - Command exited with code 0
+2017-03-08T23:36:41.212 gaze INFO - Running behaviour of type command..
+2017-03-08T23:36:41.241 gaze INFO - Behaviour completed.
+2017-03-08T23:36:41.241 gaze INFO - Running behaviour of type logfile..
+2017-03-08T23:36:41.241 gaze INFO - Skipping because it only runs on failures
+2017-03-08T23:36:41.241 gaze INFO - Running behaviour of type web..
+2017-03-08T23:36:41.241 gaze INFO - Making POST request to http://127.0.0.1:8080..
+2017-03-08T23:36:41.244 gaze INFO - Behaviour completed.
 ```
 
 The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the
 `web` behaviour. It's output looks something like the following:
 
 ```
-2017-03-08 23:26:32,225 : INFO : Starting example server at: ('', 8080)...
-2017-03-08 23:26:32,937 : INFO : Incoming POST request on /
-2017-03-08 23:26:32,937 : INFO : Header 'content-length' -> '379'
-2017-03-08 23:26:32,937 : INFO : Header 'accept-encoding' -> 'gzip'
-2017-03-08 23:26:32,937 : INFO : Header 'api-token' -> 'MY_TOKEN'
-2017-03-08 23:26:32,937 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
-2017-03-08 23:26:32,937 : INFO : Header 'host' -> '127.0.0.1:8080'
-2017-03-08 23:26:32,937 : INFO : Header 'content-type' -> 'application/json'
-2017-03-08 23:26:32,937 : INFO : Content: {
-  "captured_output": "Wed Mar  8 23:26:32 SAST 2017\n", 
+2017-03-08 23:36:40,233 : INFO : Starting example server at: ('', 8080)...
+2017-03-08 23:36:41,242 : INFO : Incoming POST request on /
+2017-03-08 23:36:41,242 : INFO : Header 'content-length' -> '379'
+2017-03-08 23:36:41,242 : INFO : Header 'accept-encoding' -> 'gzip'
+2017-03-08 23:36:41,242 : INFO : Header 'api-token' -> 'MY_TOKEN'
+2017-03-08 23:36:41,242 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
+2017-03-08 23:36:41,242 : INFO : Header 'host' -> '127.0.0.1:8080'
+2017-03-08 23:36:41,242 : INFO : Header 'content-type' -> 'application/json'
+2017-03-08 23:36:41,242 : INFO : Content: {
+  "captured_output": "Wed Mar  8 23:36:41 SAST 2017\n", 
   "hostname": "Bens-MacBook-Pro.local", 
   "name": "date", 
   "tags": [
     "tagA", 
     "tagB"
   ], 
-  "start_time": "2017-03-08T23:26:32.902994733+02:00", 
+  "start_time": "2017-03-08T23:36:41.207293261+02:00", 
   "exit_description": "Execution finished with no error", 
   "exit_code": 0, 
-  "ulid": "01BAQX1YPCTV665RBRV9B2PP43", 
-  "elapsed_seconds": 0.005685812, 
+  "ulid": "01BAQXMGQWA78DQJ2WHGJVQ0QC", 
+  "elapsed_seconds": 0.005153502, 
   "command": [
     "date"
   ], 
-  "end_time": "2017-03-08T23:26:32.908681837+02:00"
+  "end_time": "2017-03-08T23:36:41.212448886+02:00"
 }
-127.0.0.1 - - [08/Mar/2017 23:26:32] "POST / HTTP/1.1" 204 -
+127.0.0.1 - - [08/Mar/2017 23:36:41] "POST / HTTP/1.1" 204 -
 ```
 
 ### What is the `ulid`?
