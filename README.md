@@ -34,18 +34,18 @@ $ ./gaze -json sleep 1 | python -m json.tool
         "sleep",
         "1"
     ],
-    "elapsed_seconds": 1.0081458,
-    "end_time": "2017-01-01T13:34:23.543516315-03:00",
+    "elapsed_seconds": 1.0086708,
+    "end_time": "2017-03-08T23:26:31.816432321+02:00",
     "exit_code": 0,
     "exit_description": "Execution finished with no error",
     "hostname": "Bens-MacBook-Pro.local",
     "name": "sleep.1",
-    "start_time": "2017-01-01T13:34:22.53525594-03:00",
+    "start_time": "2017-03-08T23:26:30.807758648+02:00",
     "tags": [
         "testing",
         "sometag"
     ],
-    "ulid": "01B5DE3J5QVEYN0NX5TT2DQE8B"
+    "ulid": "01BAQX1XM8FTNE28MHBEVSRQBW"
 }
 ```
 
@@ -57,7 +57,7 @@ can be different to the gap between start and end times.
 
 ```
 $ ./gaze -version
-Version: 0.5 (commit 8b1d3ff @ 2016-12-29)
+Version: 0.6 (v0.6) on 2017-03-08T21:25:55Z 
 
  .    '                   .  "   '
             .  .  .                 '      '
@@ -78,7 +78,12 @@ Project: https://github.com/AstromechZA/gaze
 
 ```
 $ ./gaze -help
-TODO
+gaze is a command line observer utility for tracking, logging, and reporting
+the results of an execution. It becomes really powerful when used in 'cron'
+entries and other commands that are run regularly such as scheduled backups
+and updates. There is no point having a backup procedure that silently fails.
+
+See the documentation at https://github.com/AstromechZA/gaze for more.
 
   -config string
     	path to a gaze config file (default = $HOME/.config/gaze.yaml)
@@ -140,11 +145,11 @@ tags:
 
 Specifying the config and watching the debug log:
 ```
-$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpS30X_cgaze/gaze.yaml -debug date
-2017-01-01T13:34:24.613 gaze INFO - Logging initialised.
-2017-01-01T13:34:24.613 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpS30X_cgaze/gaze.yaml
+$ ./gaze -config /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpJPlQ0Igaze/gaze.yaml -debug date
+2017-03-08T23:26:32.902 gaze INFO - Logging initialised.
+2017-03-08T23:26:32.902 gaze INFO - Loading config from /var/folders/sl/fvkg182n1_x0hn2k7pfkprcm0000gn/T/tmpJPlQ0Igaze/gaze.yaml
 map[interface {}]interface {}
-2017-01-01T13:34:24.613 gaze INFO - Loaded config: {
+2017-03-08T23:26:32.902 gaze INFO - Loaded config: {
   "Behaviours": {
     "cmd": {
       "Type": "command",
@@ -186,49 +191,49 @@ map[interface {}]interface {}
     "tagB"
   ]
 } (err: <nil>)
-2017-01-01T13:34:24.613 gaze INFO - Attempting to use 'date' as commandName
-Sun Jan  1 13:34:24 UYT 2017
-2017-01-01T13:34:24.617 gaze INFO - Command exited with code 0
-2017-01-01T13:34:24.617 gaze INFO - Running behaviour of type command..
-2017-01-01T13:34:24.642 gaze INFO - Behaviour completed.
-2017-01-01T13:34:24.642 gaze INFO - Running behaviour of type logfile..
-2017-01-01T13:34:24.642 gaze INFO - Skipping because it only runs on failures
-2017-01-01T13:34:24.642 gaze INFO - Running behaviour of type web..
-2017-01-01T13:34:24.642 gaze INFO - Making POST request to http://127.0.0.1:8080..
-2017-01-01T13:34:24.644 gaze INFO - Behaviour completed.
+2017-03-08T23:26:32.902 gaze INFO - Attempting to use 'date' as commandName
+Wed Mar  8 23:26:32 SAST 2017
+2017-03-08T23:26:32.908 gaze INFO - Command exited with code 0
+2017-03-08T23:26:32.908 gaze INFO - Running behaviour of type command..
+2017-03-08T23:26:32.936 gaze INFO - Behaviour completed.
+2017-03-08T23:26:32.936 gaze INFO - Running behaviour of type logfile..
+2017-03-08T23:26:32.936 gaze INFO - Skipping because it only runs on failures
+2017-03-08T23:26:32.936 gaze INFO - Running behaviour of type web..
+2017-03-08T23:26:32.936 gaze INFO - Making POST request to http://127.0.0.1:8080..
+2017-03-08T23:26:32.938 gaze INFO - Behaviour completed.
 ```
 
 The provided `example_python_receiver.py` script acts as an example web server accepting the payload from the
 `web` behaviour. It's output looks something like the following:
 
 ```
-2017-01-01 13:34:24,279 : INFO : Starting example server at: ('', 8080)...
-2017-01-01 13:34:24,643 : INFO : Incoming POST request on /
-2017-01-01 13:34:24,643 : INFO : Header 'content-length' -> '376'
-2017-01-01 13:34:24,643 : INFO : Header 'accept-encoding' -> 'gzip'
-2017-01-01 13:34:24,643 : INFO : Header 'api-token' -> 'MY_TOKEN'
-2017-01-01 13:34:24,643 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
-2017-01-01 13:34:24,643 : INFO : Header 'host' -> '127.0.0.1:8080'
-2017-01-01 13:34:24,643 : INFO : Header 'content-type' -> 'application/json'
-2017-01-01 13:34:24,643 : INFO : Content: {
-  "captured_output": "Sun Jan  1 13:34:24 UYT 2017\n", 
+2017-03-08 23:26:32,225 : INFO : Starting example server at: ('', 8080)...
+2017-03-08 23:26:32,937 : INFO : Incoming POST request on /
+2017-03-08 23:26:32,937 : INFO : Header 'content-length' -> '379'
+2017-03-08 23:26:32,937 : INFO : Header 'accept-encoding' -> 'gzip'
+2017-03-08 23:26:32,937 : INFO : Header 'api-token' -> 'MY_TOKEN'
+2017-03-08 23:26:32,937 : INFO : Header 'user-agent' -> 'Go-http-client/1.1'
+2017-03-08 23:26:32,937 : INFO : Header 'host' -> '127.0.0.1:8080'
+2017-03-08 23:26:32,937 : INFO : Header 'content-type' -> 'application/json'
+2017-03-08 23:26:32,937 : INFO : Content: {
+  "captured_output": "Wed Mar  8 23:26:32 SAST 2017\n", 
   "hostname": "Bens-MacBook-Pro.local", 
   "name": "date", 
   "tags": [
     "tagA", 
     "tagB"
   ], 
-  "start_time": "2017-01-01T13:34:24.61348226-03:00", 
+  "start_time": "2017-03-08T23:26:32.902994733+02:00", 
   "exit_description": "Execution finished with no error", 
   "exit_code": 0, 
-  "ulid": "01B5DE3K79SKTVQWPNBCF3NYAM", 
-  "elapsed_seconds": 0.00398649, 
+  "ulid": "01BAQX1YPCTV665RBRV9B2PP43", 
+  "elapsed_seconds": 0.005685812, 
   "command": [
     "date"
   ], 
-  "end_time": "2017-01-01T13:34:24.617469933-03:00"
+  "end_time": "2017-03-08T23:26:32.908681837+02:00"
 }
-127.0.0.1 - - [01/Jan/2017 13:34:24] "POST / HTTP/1.1" 204 -
+127.0.0.1 - - [08/Mar/2017 23:26:32] "POST / HTTP/1.1" 204 -
 ```
 
 ### What is the `ulid`?
