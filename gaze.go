@@ -16,7 +16,13 @@ import (
 	logging "github.com/op/go-logging"
 )
 
-const usageString = `TODO
+const usageString = `
+gaze is a command line observer utility for tracking, logging, and reporting
+the results of an execution. It becomes really powerful when used in 'cron'
+entries and other commands that are run regularly such as scheduled backups
+and updates. There is no point having a backup procedure that silently fails.
+
+See the documentation at https://github.com/AstromechZA/gaze for more.
 
 `
 
@@ -36,10 +42,11 @@ const logoImage = `
               //         \\
 `
 
-// GazeVersion is the version string
-// format should be 'X.YZ'
-// Set this at build time using the -ldflags="-X main.GazeVersion=X.YZ"
-var GazeVersion = "<unofficial build>"
+// These variables are filled by the `govvv` tool at compile time.
+// There are a few more granular variables available if necessary.
+var Version = "<unofficial build>"
+var GitSummary = "<changes unknown>"
+var BuildDate = "<no date>"
 
 var logFormat = logging.MustStringFormatter(
 	"%{time:2006-01-02T15:04:05.000} %{module} %{level:.4s} - %{message}",
@@ -80,7 +87,7 @@ func mainInner() error {
 
 	// set a more verbose usage message.
 	flag.Usage = func() {
-		os.Stderr.WriteString(usageString)
+		os.Stderr.WriteString(strings.TrimSpace(usageString) + "\n\n")
 		flag.PrintDefaults()
 	}
 	// parse them
@@ -88,7 +95,7 @@ func mainInner() error {
 
 	// first do arg checking
 	if *versionFlag {
-		fmt.Println("Version: " + GazeVersion)
+		fmt.Printf("Version: %s (%s) on %s \n", Version, GitSummary, BuildDate)
 		fmt.Println(logoImage)
 		fmt.Println("Project: https://github.com/AstromechZA/gaze")
 		return nil

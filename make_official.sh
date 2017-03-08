@@ -2,45 +2,38 @@
 
 set -e
 
-# first build the version string
-VERSION_NUM=0.5
-
-# add the git commit id and date
-VERSION="$VERSION_NUM (commit $(git rev-parse --short HEAD) @ $(git log -1 --date=short --pretty=format:%cd))"
+VERSION_NUM=$(cat VERSION)
 
 function buildbinary {
     goos=$1
     goarch=$2
 
-    echo "Building official $goos $goarch binary for version '$VERSION'"
+    echo "Building official $goos $goarch release"
 
-    outputfolder="build/${goos}_${goarch}"
+    name="gaze-${VERSION_NUM}_${goos}_${goarch}"
+    outputfolder="build/$name"
     echo "Output Folder $outputfolder"
     mkdir -pv $outputfolder
 
     export GOOS=$goos
     export GOARCH=$goarch
 
-    go build -i -v -o "$outputfolder/gaze" -ldflags "-X \"main.GazeVersion=$VERSION\"" github.com/AstromechZA/gaze
+    govvv build -i -v -o "$outputfolder/gaze" github.com/AstromechZA/gaze
 
-    echo "Done"
-    ls -lh "$outputfolder/gaze"
-    file "$outputfolder/gaze"
+    tar -czvf "build/$name.tar.gz" -C "build" "$name"
+    ls -lh "build/$name.tar.gz"
     echo
 }
 
-# build local 
+rm -rfv build/
+
+# build local
 unset GOOS
 unset GOARCH
-go build -ldflags "-X \"main.GazeVersion=$VERSION\"" github.com/AstromechZA/gaze
+govvv build -i -v github.com/AstromechZA/gaze
 
 # build for mac
 buildbinary darwin amd64
 
 # build for linux
 buildbinary linux amd64
-
-# zip up
-tar -czf gaze-${VERSION_NUM}.tgz -C build .
-ls -lh gaze-${VERSION_NUM}.tgz
-file gaze-${VERSION_NUM}.tgz
